@@ -136,6 +136,17 @@ export function ConfigClient() {
     }
   }
 
+  async function handleToggleAtivo(row: Row) {
+    const ativo = row.ativo !== false;
+    setError(null);
+    try {
+      await updateRow(activeTab.table, row.id, { ativo: !ativo });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao alterar o status.");
+    }
+  }
+
   async function handleDelete(id: string) {
     if (!window.confirm("Excluir este registro?")) return;
     setError(null);
@@ -232,8 +243,22 @@ export function ConfigClient() {
               header: f.label,
               render: (row) => formatCell(activeTab, row, f.key, options),
             }))}
-            actions={(row) => (
-              <div className="flex items-center justify-end gap-1">
+            actions={(row) => {
+              const ativo = row.ativo !== false;
+              return (
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleToggleAtivo(row)}
+                  title={ativo ? "Clique para inativar" : "Clique para ativar"}
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${
+                    ativo
+                      ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                      : "bg-slate-300 text-slate-700 hover:bg-slate-400"
+                  }`}
+                >
+                  {ativo ? "Ativo" : "Inativo"}
+                </button>
                 <button
                   type="button"
                   onClick={() => openEdit(row)}
@@ -251,7 +276,8 @@ export function ConfigClient() {
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-            )}
+              );
+            }}
           />
         )}
       </div>

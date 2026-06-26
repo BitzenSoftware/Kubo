@@ -19,6 +19,15 @@ export async function insertRow(
   if (error) throw error;
 }
 
+export async function insertRows(
+  table: string,
+  values: Record<string, unknown>[],
+): Promise<void> {
+  if (values.length === 0) return;
+  const { error } = await getSupabase().from(table).insert(values);
+  if (error) throw error;
+}
+
 export async function updateRow(
   table: string,
   id: string,

@@ -1,7 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Download,
+  FileDown,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Modal } from "@/components/ui/modal";
@@ -13,10 +21,12 @@ import {
 import {
   deleteRow,
   insertRow,
+  insertRows,
   listRows,
   updateRow,
   type Row,
 } from "@/lib/config-data";
+import { downloadSheet, pickByHeader, readSheet, toISODate } from "@/lib/xlsx";
 
 type Option = { id: string; nome: string };
 
@@ -55,6 +65,11 @@ export function ConfigClient() {
   const [editing, setEditing] = useState<Row | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  // Importação / exportação xlsx
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const activeTab = configTabById[activeId];
 
@@ -158,6 +173,78 @@ export function ConfigClient() {
     }
   }
 
+  // ---- xlsx: modelo / exportação / importação ----
+
+  /** Baixa um modelo .xlsx só com os cabeçalhos das colunas da aba. */
+  function handleTemplate() {
+    const headers = activeTab.fields.map((f) => f.label);
+    downloadSheet(`modelo_${activeTab.id}.xlsx`, [headers]);
+  }
+
+  /** Exporta os registros atuais da aba para .xlsx. */
+  function handleExport() {
+    const headers = activeTab.fields.map((f) => f.label);
+    const data = rows.map((row) =>
+      activeTab.fields.map((f) => formatCell(activeTab, row, f.key, options)),
+    );
+    downloadSheet(`${activeTab.id}.xlsx`, [headers, ...data]);
+  }
+
+  /** Importa registros de um .xlsx (cadastro em lote). */
+  async function handleImport(file: File) {
+    setImporting(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const sheetRows = await readSheet(file);
+      const payloads: Record<string, unknown>[] = [];
+      let ignoradas = 0;
+
+      for (const sheetRow of sheetRows) {
+        const payload: Record<string, unknown> = {};
+        for (const field of activeTab.fields) {
+          const raw = pickByHeader(sheetRow, field.label);
+          if (field.type === "date") {
+            payload[field.key] = toISODate(raw);
+          } else if (field.type === "select" && field.optionsFrom) {
+            const nome = String(raw ?? "").trim().toLowerCase();
+            const opt = (options[field.optionsFrom] ?? []).find(
+              (o) => o.nome.trim().toLowerCase() === nome,
+            );
+            payload[field.key] = opt?.id ?? null;
+          } else {
+            const v = String(raw ?? "").trim();
+            payload[field.key] = v === "" ? null : v;
+          }
+        }
+        // "nome" é obrigatório; linhas sem nome são ignoradas
+        if (!payload.nome) {
+          ignoradas++;
+          continue;
+        }
+        payloads.push(payload);
+      }
+
+      if (payloads.length === 0) {
+        setError(
+          "Nenhuma linha válida encontrada. Verifique se os cabeçalhos batem com o modelo e se a coluna Nome está preenchida.",
+        );
+        return;
+      }
+
+      await insertRows(activeTab.table, payloads);
+      await load();
+      setNotice(
+        `${payloads.length} registro(s) importado(s)` +
+          (ignoradas ? ` — ${ignoradas} ignorado(s) por falta de Nome.` : "."),
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao importar a planilha.");
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -205,17 +292,60 @@ export function ConfigClient() {
           {error}
         </div>
       )}
+      {notice && (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {notice}
+        </div>
+      )}
 
       {/* Conteúdo da aba */}
       <div className="rounded-lg border border-slate-200 bg-white">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-5 py-3.5">
           <h2 className="text-sm font-semibold text-slate-900">
             {activeTab.label}
           </h2>
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4" />
-            Adicionar {activeTab.singular}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              aria-label="Importar planilha xlsx"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImport(file);
+                e.target.value = "";
+              }}
+            />
+            <Button variant="outline" onClick={handleTemplate}>
+              <FileDown className="h-4 w-4" />
+              Modelo
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+            >
+              {importing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              Importar
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={rows.length === 0}
+            >
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="h-4 w-4" />
+              Adicionar {activeTab.singular}
+            </Button>
+          </div>
         </div>
 
         {loading ? (

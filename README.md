@@ -1,16 +1,29 @@
-# Kubo
+# Kubo ERP
 
-Projeto Kubo — by Bitzen Software.
+ERP web — by Bitzen Software.
 
-## Status
+Stack: **Next.js (App Router) + TypeScript + Tailwind CSS**. Banco de dados (Supabase/Postgres) será integrado em fase posterior.
 
-🚧 Em desenvolvimento inicial.
-
-## Começando
+## Desenvolvimento
 
 ```bash
-git clone https://github.com/BitzenSoftware/Kubo.git
-cd Kubo
+npm install
+npm run dev
+```
+
+App em http://localhost:3000
+
+## Estrutura
+
+```
+src/
+  app/
+    (erp)/              # área autenticada do ERP (layout com sidebar)
+      layout.tsx        # shell: sidebar de menus + topbar
+      dashboard/        # página inicial do ERP
+      ...               # cada menu vira uma rota aqui
+  components/           # componentes reutilizáveis (sidebar, ui, ...)
+  lib/                  # helpers, configuração de menus
 ```
 
 ## Licença

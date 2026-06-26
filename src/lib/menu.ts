@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, Settings } from "lucide-react";
 
 export type MenuItem = {
   label: string;
@@ -22,6 +22,12 @@ export const menu: MenuGroup[] = [
     label: "Geral",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Sistema",
+    items: [
+      { label: "Configurações", href: "/configuracoes", icon: Settings },
     ],
   },
 ];

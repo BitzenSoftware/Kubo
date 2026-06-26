@@ -78,6 +78,9 @@ export function ConfigClient() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const activeTab = configTabById[activeId];
+  const keyField = activeTab.keyField ?? "nome";
+  const keyLabel =
+    activeTab.fields.find((f) => f.key === keyField)?.label ?? "Nome";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -139,13 +142,32 @@ export function ConfigClient() {
     e.preventDefault();
     setFormError(null);
 
-    // Bloqueia nome duplicado na mesma aba (case-insensitive)
-    const nome = normNome(form.nome);
+    // Validações por campo (apenas letras / comprimento definido por outro campo)
+    for (const field of activeTab.fields) {
+      const v = (form[field.key] ?? "").trim();
+      if (!v) continue;
+      if (field.lettersOnly && !/^[A-Za-zÀ-ÿ]+$/.test(v)) {
+        setFormError(`${field.label} deve conter apenas letras.`);
+        return;
+      }
+      if (field.lengthFromField) {
+        const len = Number(form[field.lengthFromField] ?? 0);
+        if (len > 0 && v.length !== len) {
+          setFormError(
+            `${field.label} deve ter exatamente ${len} caractere(s).`,
+          );
+          return;
+        }
+      }
+    }
+
+    // Bloqueia duplicado pelo campo chave da aba (case-insensitive)
+    const chave = normNome(form[keyField]);
     const duplicado = rows.some(
-      (r) => r.id !== editing?.id && normNome(r.nome) === nome,
+      (r) => r.id !== editing?.id && normNome(r[keyField]) === chave,
     );
     if (duplicado) {
-      setFormError("Já existe um registro com esse nome nesta aba.");
+      setFormError(`Já existe um registro com esse ${keyLabel} nesta aba.`);
       return;
     }
 
@@ -154,7 +176,11 @@ export function ConfigClient() {
       const payload: Record<string, unknown> = {};
       for (const field of activeTab.fields) {
         const v = (form[field.key] ?? "").trim();
-        payload[field.key] = v === "" ? null : v;
+        if (field.type === "number") {
+          payload[field.key] = v === "" ? null : Number(v);
+        } else {
+          payload[field.key] = v === "" ? null : v;
+        }
       }
       if (editing) {
         await updateRow(activeTab.table, editing.id, payload);
@@ -168,7 +194,7 @@ export function ConfigClient() {
       const code = (e as { code?: string })?.code;
       setFormError(
         code === "23505"
-          ? "Já existe um registro com esse nome nesta aba."
+          ? `Já existe um registro com esse ${keyLabel} nesta aba.`
           : e instanceof Error
             ? e.message
             : "Erro ao salvar.",
@@ -225,11 +251,11 @@ export function ConfigClient() {
     try {
       const sheetRows = await readSheet(file);
       const payloads: Record<string, unknown>[] = [];
-      let semNome = 0;
+      let semChave = 0;
       let duplicados = 0;
 
-      // Nomes já existentes no banco + os já vistos neste arquivo (evita duplicados)
-      const existentes = new Set(rows.map((r) => normNome(r.nome)));
+      // Valores-chave já existentes no banco + já vistos neste arquivo (evita duplicados)
+      const existentes = new Set(rows.map((r) => normNome(r[keyField])));
       const vistos = new Set<string>();
 
       for (const sheetRow of sheetRows) {
@@ -238,6 +264,9 @@ export function ConfigClient() {
           const raw = pickByHeader(sheetRow, field.label);
           if (field.type === "date") {
             payload[field.key] = toISODate(raw);
+          } else if (field.type === "number") {
+            const v = String(raw ?? "").trim();
+            payload[field.key] = v === "" ? null : Number(v);
           } else if (field.type === "select" && field.optionsFrom) {
             const nome = normNome(raw);
             const opt = (options[field.optionsFrom] ?? []).find(
@@ -245,17 +274,18 @@ export function ConfigClient() {
             );
             payload[field.key] = opt?.id ?? null;
           } else {
-            const v = String(raw ?? "").trim();
+            let v = String(raw ?? "").trim();
+            if (field.uppercase) v = v.toUpperCase();
             payload[field.key] = v === "" ? null : v;
           }
         }
-        // "nome" é obrigatório; linhas sem nome são ignoradas
-        if (!payload.nome) {
-          semNome++;
+        // O campo-chave é obrigatório; linhas sem ele são ignoradas
+        if (!payload[keyField]) {
+          semChave++;
           continue;
         }
         // Ignora duplicados (já no banco ou repetidos no próprio arquivo)
-        const chave = normNome(payload.nome);
+        const chave = normNome(payload[keyField]);
         if (existentes.has(chave) || vistos.has(chave)) {
           duplicados++;
           continue;
@@ -267,7 +297,7 @@ export function ConfigClient() {
       if (payloads.length === 0) {
         const motivos: string[] = [];
         if (duplicados) motivos.push(`${duplicados} duplicado(s)`);
-        if (semNome) motivos.push(`${semNome} sem Nome`);
+        if (semChave) motivos.push(`${semChave} sem ${keyLabel}`);
         setError(
           motivos.length
             ? `Nenhum registro novo para importar (${motivos.join(", ")}).`
@@ -280,7 +310,7 @@ export function ConfigClient() {
       await load();
       const ignorados: string[] = [];
       if (duplicados) ignorados.push(`${duplicados} duplicado(s)`);
-      if (semNome) ignorados.push(`${semNome} sem Nome`);
+      if (semChave) ignorados.push(`${semChave} sem ${keyLabel}`);
       setNotice(
         `${payloads.length} registro(s) importado(s)` +
           (ignorados.length ? ` — ignorados: ${ignorados.join(", ")}.` : "."),
@@ -302,7 +332,7 @@ export function ConfigClient() {
       </div>
 
       {/* Abas */}
-      <div className="flex flex-wrap gap-1.5 border-b border-slate-200 pb-px">
+      <div className="flex flex-wrap gap-2">
         {configTabs.map((tab) => {
           const active = tab.id === activeId;
           const count = counts[tab.id];
@@ -311,19 +341,19 @@ export function ConfigClient() {
               key={tab.id}
               type="button"
               onClick={() => setActiveId(tab.id)}
-              className={`rounded-t-md px-3.5 py-2 text-sm font-medium transition-colors ${
+              className={`inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
                 active
-                  ? "bg-white text-indigo-600 shadow-[inset_0_-2px_0_0_theme(colors.indigo.600)]"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
               }`}
             >
               {tab.label}
               {count != null && count > 0 && (
                 <span
-                  className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs ${
+                  className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
                     active
-                      ? "bg-indigo-50 text-indigo-600"
-                      : "bg-slate-100 text-slate-500"
+                      ? "bg-white/25 text-white"
+                      : "bg-white text-slate-500"
                   }`}
                 >
                   {count}
@@ -496,13 +526,28 @@ export function ConfigClient() {
                   </select>
                 ) : (
                   <input
-                    required={field.key === "nome"}
-                    type={field.type === "date" ? "date" : "text"}
+                    required={field.key === keyField}
+                    type={
+                      field.type === "date"
+                        ? "date"
+                        : field.type === "number"
+                          ? "number"
+                          : "text"
+                    }
+                    min={field.type === "number" ? 0 : undefined}
+                    maxLength={
+                      field.lengthFromField
+                        ? Number(form[field.lengthFromField]) || undefined
+                        : undefined
+                    }
                     placeholder={field.placeholder}
                     value={form[field.key] ?? ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, [field.key]: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      const val = field.uppercase
+                        ? e.target.value.toUpperCase()
+                        : e.target.value;
+                      setForm((f) => ({ ...f, [field.key]: val }));
+                    }}
                     className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                 )}

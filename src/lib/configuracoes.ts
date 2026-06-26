@@ -1,4 +1,4 @@
-export type FieldType = "text" | "date" | "select";
+export type FieldType = "text" | "date" | "select" | "number";
 
 export type ConfigField = {
   key: string;
@@ -7,6 +7,12 @@ export type ConfigField = {
   /** Para type "select": id da aba de onde vêm as opções (value = id, label = nome). */
   optionsFrom?: string;
   placeholder?: string;
+  /** Aceita apenas letras (validação). */
+  lettersOnly?: boolean;
+  /** Converte automaticamente para maiúsculas. */
+  uppercase?: boolean;
+  /** O comprimento exato deste campo é definido pelo valor (numérico) de outro campo (key). */
+  lengthFromField?: string;
 };
 
 export type ConfigTab = {
@@ -17,6 +23,8 @@ export type ConfigTab = {
   label: string;
   /** Rótulo no singular, usado em "Adicionar X" e título do modal. */
   singular: string;
+  /** Campo identificador (obrigatório + chave de duplicidade). Default "nome". */
+  keyField?: string;
   fields: ConfigField[];
 };
 
@@ -110,6 +118,25 @@ export const configTabs: ConfigTab[] = [
     fields: [
       { key: "nome", label: "Nome", type: "text" },
       { key: "cnpj", label: "CNPJ", type: "text", placeholder: "00.000.000/0000-00" },
+    ],
+  },
+  {
+    id: "categoria",
+    table: "categoria",
+    label: "Categoria",
+    singular: "Categoria",
+    keyField: "codigo",
+    fields: [
+      { key: "prefixo", label: "Prefixo", type: "number", placeholder: "Ex: 3" },
+      {
+        key: "codigo",
+        label: "Código",
+        type: "text",
+        uppercase: true,
+        lettersOnly: true,
+        lengthFromField: "prefixo",
+        placeholder: "Ex: FRA",
+      },
     ],
   },
 ];

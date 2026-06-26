@@ -13,6 +13,8 @@ export type ConfigField = {
   uppercase?: boolean;
   /** O comprimento exato deste campo é definido pelo valor (numérico) de outro campo (key). */
   lengthFromField?: string;
+  /** Torna o campo obrigatório (o campo-chave já é sempre obrigatório). */
+  required?: boolean;
 };
 
 export type ConfigTab = {
@@ -127,6 +129,7 @@ export const configTabs: ConfigTab[] = [
     singular: "Categoria",
     keyField: "codigo",
     fields: [
+      { key: "nome", label: "Nome", type: "text", required: true },
       { key: "prefixo", label: "Prefixo", type: "number", placeholder: "Ex: 3" },
       {
         key: "codigo",

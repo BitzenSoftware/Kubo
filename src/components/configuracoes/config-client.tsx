@@ -526,7 +526,7 @@ export function ConfigClient() {
                   </select>
                 ) : (
                   <input
-                    required={field.key === keyField}
+                    required={field.key === keyField || !!field.required}
                     type={
                       field.type === "date"
                         ? "date"

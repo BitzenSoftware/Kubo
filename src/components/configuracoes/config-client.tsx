@@ -30,6 +30,11 @@ import { downloadSheet, pickByHeader, readSheet, toISODate } from "@/lib/xlsx";
 
 type Option = { id: string; nome: string };
 
+/** Normaliza um nome para comparação de duplicados (sem espaços nas pontas, minúsculo). */
+function normNome(value: unknown): string {
+  return String(value ?? "").trim().toLowerCase();
+}
+
 function formatCell(
   tab: ConfigTab,
   row: Row,
@@ -65,6 +70,7 @@ export function ConfigClient() {
   const [editing, setEditing] = useState<Row | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Importação / exportação xlsx
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,12 +116,14 @@ export function ConfigClient() {
 
   function openCreate() {
     setEditing(null);
+    setFormError(null);
     setForm(Object.fromEntries(activeTab.fields.map((f) => [f.key, ""])));
     setModalOpen(true);
   }
 
   function openEdit(row: Row) {
     setEditing(row);
+    setFormError(null);
     setForm(
       Object.fromEntries(
         activeTab.fields.map((f) => [
@@ -129,8 +137,19 @@ export function ConfigClient() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
+
+    // Bloqueia nome duplicado na mesma aba (case-insensitive)
+    const nome = normNome(form.nome);
+    const duplicado = rows.some(
+      (r) => r.id !== editing?.id && normNome(r.nome) === nome,
+    );
+    if (duplicado) {
+      setFormError("Já existe um registro com esse nome nesta aba.");
+      return;
+    }
+
     setSaving(true);
-    setError(null);
     try {
       const payload: Record<string, unknown> = {};
       for (const field of activeTab.fields) {
@@ -145,7 +164,15 @@ export function ConfigClient() {
       setModalOpen(false);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao salvar.");
+      // Backstop: violação do índice único no banco (código 23505)
+      const code = (e as { code?: string })?.code;
+      setFormError(
+        code === "23505"
+          ? "Já existe um registro com esse nome nesta aba."
+          : e instanceof Error
+            ? e.message
+            : "Erro ao salvar.",
+      );
     } finally {
       setSaving(false);
     }
@@ -198,7 +225,12 @@ export function ConfigClient() {
     try {
       const sheetRows = await readSheet(file);
       const payloads: Record<string, unknown>[] = [];
-      let ignoradas = 0;
+      let semNome = 0;
+      let duplicados = 0;
+
+      // Nomes já existentes no banco + os já vistos neste arquivo (evita duplicados)
+      const existentes = new Set(rows.map((r) => normNome(r.nome)));
+      const vistos = new Set<string>();
 
       for (const sheetRow of sheetRows) {
         const payload: Record<string, unknown> = {};
@@ -207,9 +239,9 @@ export function ConfigClient() {
           if (field.type === "date") {
             payload[field.key] = toISODate(raw);
           } else if (field.type === "select" && field.optionsFrom) {
-            const nome = String(raw ?? "").trim().toLowerCase();
+            const nome = normNome(raw);
             const opt = (options[field.optionsFrom] ?? []).find(
-              (o) => o.nome.trim().toLowerCase() === nome,
+              (o) => normNome(o.nome) === nome,
             );
             payload[field.key] = opt?.id ?? null;
           } else {
@@ -219,24 +251,39 @@ export function ConfigClient() {
         }
         // "nome" é obrigatório; linhas sem nome são ignoradas
         if (!payload.nome) {
-          ignoradas++;
+          semNome++;
           continue;
         }
+        // Ignora duplicados (já no banco ou repetidos no próprio arquivo)
+        const chave = normNome(payload.nome);
+        if (existentes.has(chave) || vistos.has(chave)) {
+          duplicados++;
+          continue;
+        }
+        vistos.add(chave);
         payloads.push(payload);
       }
 
       if (payloads.length === 0) {
+        const motivos: string[] = [];
+        if (duplicados) motivos.push(`${duplicados} duplicado(s)`);
+        if (semNome) motivos.push(`${semNome} sem Nome`);
         setError(
-          "Nenhuma linha válida encontrada. Verifique se os cabeçalhos batem com o modelo e se a coluna Nome está preenchida.",
+          motivos.length
+            ? `Nenhum registro novo para importar (${motivos.join(", ")}).`
+            : "Nenhuma linha válida encontrada. Verifique se os cabeçalhos batem com o modelo.",
         );
         return;
       }
 
       await insertRows(activeTab.table, payloads);
       await load();
+      const ignorados: string[] = [];
+      if (duplicados) ignorados.push(`${duplicados} duplicado(s)`);
+      if (semNome) ignorados.push(`${semNome} sem Nome`);
       setNotice(
         `${payloads.length} registro(s) importado(s)` +
-          (ignoradas ? ` — ${ignoradas} ignorado(s) por falta de Nome.` : "."),
+          (ignorados.length ? ` — ignorados: ${ignorados.join(", ")}.` : "."),
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao importar a planilha.");
@@ -462,6 +509,12 @@ export function ConfigClient() {
               </div>
             );
           })}
+
+          {formError && (
+            <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {formError}
+            </p>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

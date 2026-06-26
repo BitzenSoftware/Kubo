@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { Modal } from "@/components/ui/modal";
 import {
   configTabs,
@@ -223,54 +224,35 @@ export function ConfigClient() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  {activeTab.fields.map((f) => (
-                    <th key={f.key} className="px-5 py-2.5 font-medium">
-                      {f.label}
-                    </th>
-                  ))}
-                  <th className="px-5 py-2.5 text-right font-medium">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                  >
-                    {activeTab.fields.map((f) => (
-                      <td key={f.key} className="px-5 py-3 text-slate-700">
-                        {formatCell(activeTab, row, f.key, options)}
-                      </td>
-                    ))}
-                    <td className="px-5 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => openEdit(row)}
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                          aria-label="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(row.id)}
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
-                          aria-label="Excluir"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<Row>
+            rows={rows}
+            getRowKey={(row) => row.id}
+            columns={activeTab.fields.map<Column<Row>>((f) => ({
+              key: f.key,
+              header: f.label,
+              render: (row) => formatCell(activeTab, row, f.key, options),
+            }))}
+            actions={(row) => (
+              <div className="flex items-center justify-end gap-1">
+                <button
+                  type="button"
+                  onClick={() => openEdit(row)}
+                  className="rounded-md p-1.5 text-slate-500 hover:bg-white hover:text-slate-800"
+                  aria-label="Editar"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(row.id)}
+                  className="rounded-md p-1.5 text-slate-500 hover:bg-white hover:text-rose-600"
+                  aria-label="Excluir"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          />
         )}
       </div>
 

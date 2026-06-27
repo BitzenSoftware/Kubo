@@ -143,6 +143,29 @@ export function EventosClient() {
 
     setSaving(true);
     try {
+      // Validação final de estoque (Locação) com dados frescos do banco
+      const est = await listEstoque();
+      const freshDisp = Object.fromEntries(
+        est.map((e) => [e.id, e.qtd_disponivel]),
+      );
+      const somaPorProduto: Record<string, number> = {};
+      for (const l of locacao) {
+        if (!l.produto_id) continue;
+        somaPorProduto[l.produto_id] =
+          (somaPorProduto[l.produto_id] ?? 0) + (l.quantidade || 0);
+      }
+      for (const [pid, qtd] of Object.entries(somaPorProduto)) {
+        const capacidade = (freshDisp[pid] ?? 0) + (ownByProduto[pid] ?? 0);
+        if (qtd > capacidade) {
+          const prod = produtos.find((p) => p.id === pid);
+          setFormError(
+            `Estoque insuficiente para ${prod?.codigo ?? "produto"} — ${prod?.nome ?? ""}: disponível ${capacidade}, solicitado ${qtd}.`,
+          );
+          setTab("locacao");
+          return;
+        }
+      }
+
       const status_id = statusId || null;
       const cliente_id = clienteId || null;
       let eventoId: string;

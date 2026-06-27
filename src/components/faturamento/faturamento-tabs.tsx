@@ -22,6 +22,13 @@ const taxaConfig: SimpleCrudConfig = {
   fields: [
     { key: "nome", label: "Nome", required: true },
     { key: "percentual", label: "Percentual (%)", type: "number" },
+    {
+      key: "padrao",
+      label: "Taxa padrão",
+      type: "boolean",
+      trueLabel: "Sim",
+      falseLabel: "Não",
+    },
   ],
 };
 

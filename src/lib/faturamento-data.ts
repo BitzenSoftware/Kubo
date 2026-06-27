@@ -64,11 +64,19 @@ export async function criarFaturamentoDeComercial(c: {
     }
   }
   const statusId = await ensureStatusRecebimento("Pendente");
+  // Taxa marcada como padrão (se houver)
+  const { data: taxaPadrao } = await sb
+    .from("taxa_imposto")
+    .select("id")
+    .eq("padrao", true)
+    .limit(1)
+    .maybeSingle();
   const { error } = await sb.from("faturamento").insert({
     evento_id: c.evento_id,
     cliente_id: c.cliente_id,
     valor_bruto: c.valor_orcado,
     empresa_id: c.empresa_id,
+    taxa_id: taxaPadrao?.id ?? null,
     status_recebimento_id: statusId,
   });
   if (error) throw error;

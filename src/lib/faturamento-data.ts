@@ -33,16 +33,33 @@ export async function listFaturamento(): Promise<Faturamento[]> {
   return (data ?? []) as unknown as Faturamento[];
 }
 
-/** Soma do Valor Total das Contas a Pagar por evento (Custo do Evento). */
+/**
+ * Custo do Evento por evento = soma do Valor Total das Contas a Pagar
+ * + soma do Valor dos serviços de Freelancers, ambos do mesmo evento.
+ */
 export async function listCustoPorEvento(): Promise<Record<string, number>> {
-  const { data, error } = await getSupabase()
-    .from("contas_pagar")
-    .select("evento_id, valor_total");
-  if (error) throw error;
+  const sb = getSupabase();
+  const [contasRes, freelaRes] = await Promise.all([
+    sb.from("contas_pagar").select("evento_id, valor_total"),
+    sb.from("freelancer_servico").select("evento_id, valor"),
+  ]);
+  if (contasRes.error) throw contasRes.error;
+  if (freelaRes.error) throw freelaRes.error;
+
   const map: Record<string, number> = {};
-  for (const r of (data ?? []) as { evento_id: string | null; valor_total: number | null }[]) {
+  for (const r of (contasRes.data ?? []) as {
+    evento_id: string | null;
+    valor_total: number | null;
+  }[]) {
     if (!r.evento_id) continue;
     map[r.evento_id] = (map[r.evento_id] ?? 0) + (r.valor_total ?? 0);
+  }
+  for (const r of (freelaRes.data ?? []) as {
+    evento_id: string | null;
+    valor: number | null;
+  }[]) {
+    if (!r.evento_id) continue;
+    map[r.evento_id] = (map[r.evento_id] ?? 0) + (r.valor ?? 0);
   }
   return map;
 }

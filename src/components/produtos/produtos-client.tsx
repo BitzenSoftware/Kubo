@@ -256,7 +256,7 @@ export function ProdutosClient() {
   );
 
   const filterInputCls =
-    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600";
 
   return (
     <div className="space-y-6">
@@ -351,7 +351,7 @@ export function ProdutosClient() {
             <button
               type="button"
               onClick={openCreate}
-              className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="mt-2 text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Adicionar o primeiro
             </button>
@@ -429,7 +429,7 @@ export function ProdutosClient() {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, categoria_id: e.target.value }))
                 }
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
               >
                 <option value="" disabled>
                   {categorias.length
@@ -466,7 +466,7 @@ export function ProdutosClient() {
               required
               value={form.nome}
               onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
             />
           </div>
 

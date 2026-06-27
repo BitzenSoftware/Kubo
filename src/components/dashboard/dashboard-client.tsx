@@ -256,7 +256,7 @@ export function DashboardClient() {
               onClick={() => setTab(t.id)}
               className={`inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-blue-700 text-white shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
               }`}
             >

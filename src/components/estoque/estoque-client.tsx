@@ -62,7 +62,7 @@ export function EstoqueClient() {
           value={r.qtd_atual}
           onChange={(e) => setQtdLocal(r.id, Number(e.target.value))}
           onBlur={(e) => saveQtd(r.id, Number(e.target.value))}
-          className="w-24 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+          className="w-24 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
         />
       ),
     },
@@ -113,14 +113,14 @@ export function EstoqueClient() {
               value={fNome}
               onChange={(e) => setFNome(e.target.value)}
               placeholder="Nome ou código"
-              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
             />
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"
                 checked={ocultarZero}
                 onChange={(e) => setOcultarZero(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                className="h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-600"
               />
               Ocultar sem disponível
             </label>

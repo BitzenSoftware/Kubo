@@ -419,7 +419,7 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar..."
-              className="w-full max-w-xs rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full max-w-xs rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
             />
             {busca && (
               <Button type="button" variant="outline" onClick={() => setBusca("")}>
@@ -440,7 +440,7 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
             <button
               type="button"
               onClick={openCreate}
-              className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="mt-2 text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Adicionar o primeiro
             </button>
@@ -511,7 +511,7 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, [field.key]: e.target.value }))
                   }
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 >
                   <option value="true">{field.trueLabel ?? "Sim"}</option>
                   <option value="false">{field.falseLabel ?? "Não"}</option>
@@ -524,7 +524,7 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, [field.key]: e.target.value }))
                   }
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 >
                   <option value="">Selecione...</option>
                   {(field.optionsFrom ? (options[field.optionsFrom] ?? []) : []).map(
@@ -550,7 +550,7 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, [field.key]: e.target.value }))
                   }
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 />
               )}
             </div>

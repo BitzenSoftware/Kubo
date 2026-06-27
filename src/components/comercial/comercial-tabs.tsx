@@ -31,11 +31,21 @@ const versaoConfig: SimpleCrudConfig = {
   fields: [{ key: "nome", label: "Nome", required: true }],
 };
 
+const agenciaConfig: SimpleCrudConfig = {
+  table: "agencia",
+  title: "Agências",
+  subtitle: "Agências selecionáveis no campo Agência.",
+  singular: "Agência",
+  keyField: "nome",
+  fields: [{ key: "nome", label: "Nome", required: true }],
+};
+
 const tabs = [
   { id: "pedidos", label: "Pedidos" },
   { id: "status", label: "Status Comercial" },
   { id: "vendedor", label: "Vendedor" },
   { id: "versao", label: "Versão" },
+  { id: "agencia", label: "Agências" },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -55,7 +65,7 @@ export function ComercialTabs() {
               onClick={() => setTab(t.id)}
               className={`inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
                 active
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-blue-700 text-white shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
               }`}
             >
@@ -69,6 +79,7 @@ export function ComercialTabs() {
       {tab === "status" && <SimpleCrud config={statusConfig} />}
       {tab === "vendedor" && <SimpleCrud config={vendedorConfig} />}
       {tab === "versao" && <SimpleCrud config={versaoConfig} />}
+      {tab === "agencia" && <SimpleCrud config={agenciaConfig} />}
     </div>
   );
 }

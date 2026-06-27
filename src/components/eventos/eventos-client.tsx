@@ -280,7 +280,7 @@ export function EventosClient() {
                           : line.quantidade,
                     });
                   }}
-                  className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 >
                   <option value="" disabled>
                     {options.length
@@ -312,7 +312,7 @@ export function EventosClient() {
                       ? `Máximo disponível: ${getMax(line.produto_id, line.key) ?? 0}`
                       : undefined
                   }
-                  className="w-20 rounded-md border border-slate-300 bg-white px-2 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-20 rounded-md border border-slate-300 bg-white px-2 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 />
                 <button
                   type="button"
@@ -390,7 +390,7 @@ export function EventosClient() {
       (!fStatus || e.status_id === fStatus),
   );
   const filterInputCls =
-    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600";
 
   return (
     <div className="space-y-6">
@@ -442,7 +442,7 @@ export function EventosClient() {
             <button
               type="button"
               onClick={openCreate}
-              className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="mt-2 text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Adicionar o primeiro
             </button>
@@ -510,7 +510,7 @@ export function EventosClient() {
                   onClick={() => setTab(t.id)}
                   className={`inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
                     active
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-blue-700 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                   }`}
                 >
@@ -549,7 +549,7 @@ export function EventosClient() {
                   required
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 />
               </div>
               <div>
@@ -561,7 +561,7 @@ export function EventosClient() {
                   aria-label="Cliente"
                   value={clienteId}
                   onChange={(e) => setClienteId(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 >
                   <option value="" disabled>
                     {clientes.length
@@ -583,7 +583,7 @@ export function EventosClient() {
                   aria-label="Status"
                   value={statusId}
                   onChange={(e) => setStatusId(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 >
                   <option value="">Sem status</option>
                   {statuses.map((s) => (

@@ -283,10 +283,10 @@ export function FaturamentoClient() {
   ];
 
   const inputCls =
-    "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+    "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600";
   const roCls = "w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500";
   const filterCls =
-    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600";
 
   const inc = (v: string | null, t: string) =>
     (v ?? "").toLowerCase().includes(t.trim().toLowerCase());
@@ -378,7 +378,7 @@ export function FaturamentoClient() {
         ) : registros.length === 0 ? (
           <div className="px-5 py-14 text-center">
             <p className="text-sm text-slate-500">Nenhum faturamento cadastrado.</p>
-            <button type="button" onClick={openCreate} className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-700">
+            <button type="button" onClick={openCreate} className="mt-2 text-sm font-medium text-blue-700 hover:text-blue-800">
               Adicionar o primeiro
             </button>
           </div>

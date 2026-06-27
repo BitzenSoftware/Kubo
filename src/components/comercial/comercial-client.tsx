@@ -18,7 +18,7 @@ const emptyForm = {
   status_comercial_id: "",
   cliente_id: "",
   evento_id: "",
-  agencia: "",
+  agencia_id: "",
   responsavel: "",
   local: "",
   data_evento_inicio: "",
@@ -53,6 +53,7 @@ export function ComercialClient() {
   const [vendedores, setVendedores] = useState<Opt[]>([]);
   const [versoes, setVersoes] = useState<Opt[]>([]);
   const [empresas, setEmpresas] = useState<Opt[]>([]);
+  const [agencias, setAgencias] = useState<Opt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -76,7 +77,7 @@ export function ComercialClient() {
     setLoading(true);
     setError(null);
     try {
-      const [regs, evs, cls, sts, vds, vrs, emps] = await Promise.all([
+      const [regs, evs, cls, sts, vds, vrs, emps, ags] = await Promise.all([
         listComercial(),
         listEventos(),
         listRows("clientes"),
@@ -84,6 +85,7 @@ export function ComercialClient() {
         listRows("vendedor"),
         listRows("versao"),
         listRows("empresa"),
+        listRows("agencia"),
       ]);
       setRegistros(regs);
       setEventos(
@@ -101,6 +103,7 @@ export function ComercialClient() {
       setVendedores(toOpt(vds));
       setVersoes(toOpt(vrs));
       setEmpresas(toOpt(emps));
+      setAgencias(toOpt(ags));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar os dados.");
     } finally {
@@ -127,7 +130,7 @@ export function ComercialClient() {
       status_comercial_id: c.status_comercial_id ?? "",
       cliente_id: c.cliente_id ?? "",
       evento_id: c.evento_id ?? "",
-      agencia: c.agencia ?? "",
+      agencia_id: c.agencia_id ?? "",
       responsavel: c.responsavel ?? "",
       local: c.local ?? "",
       data_evento_inicio: c.data_evento_inicio ?? "",
@@ -167,7 +170,7 @@ export function ComercialClient() {
         status_comercial_id: form.status_comercial_id || null,
         cliente_id: form.cliente_id || null,
         evento_id: form.evento_id || null,
-        agencia: form.agencia.trim() || null,
+        agencia_id: form.agencia_id || null,
         responsavel: form.responsavel.trim() || null,
         local: form.local.trim() || null,
         data_evento_inicio: form.data_evento_inicio || null,
@@ -248,7 +251,7 @@ export function ComercialClient() {
     },
     { key: "cliente", header: "Cliente", render: (c) => c.cliente?.nome ?? "—" },
     { key: "evento", header: "Evento", render: (c) => c.evento?.nome ?? "—" },
-    { key: "agencia", header: "Agência", render: (c) => c.agencia ?? "—" },
+    { key: "agencia", header: "Agência", render: (c) => c.agencia?.nome ?? "—" },
     { key: "responsavel", header: "Responsável", render: (c) => c.responsavel ?? "—" },
     { key: "local", header: "Local", render: (c) => c.local ?? "—" },
     { key: "empresa", header: "Empresa", render: (c) => c.empresa?.nome ?? "—" },
@@ -263,11 +266,11 @@ export function ComercialClient() {
   ];
 
   const inputCls =
-    "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+    "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600";
   const readonlyCls =
     "w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500";
   const filterCls =
-    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600";
 
   const inc = (v: string | null, t: string) =>
     (v ?? "").toLowerCase().includes(t.trim().toLowerCase());
@@ -276,7 +279,7 @@ export function ComercialClient() {
       (!fStatus || c.status_comercial_id === fStatus) &&
       inc(c.cliente?.nome ?? "", fCliente) &&
       inc(c.evento?.nome ?? "", fEvento) &&
-      inc(c.agencia, fAgencia) &&
+      (!fAgencia || c.agencia_id === fAgencia) &&
       (!fVendedor || c.vendedor_id === fVendedor) &&
       (!fDataDe || (c.data_evento_inicio ?? "") >= fDataDe) &&
       (!fDataAte || (c.data_evento_inicio ?? "") <= fDataAte),
@@ -316,7 +319,10 @@ export function ComercialClient() {
             </select>
             <input value={fCliente} onChange={(e) => setFCliente(e.target.value)} placeholder="Cliente" className={filterCls} />
             <input value={fEvento} onChange={(e) => setFEvento(e.target.value)} placeholder="Evento" className={filterCls} />
-            <input value={fAgencia} onChange={(e) => setFAgencia(e.target.value)} placeholder="Agência" className={filterCls} />
+            <select aria-label="Filtrar agência" value={fAgencia} onChange={(e) => setFAgencia(e.target.value)} className={filterCls}>
+              <option value="">Todas agências</option>
+              {agencias.map((a) => (<option key={a.id} value={a.id}>{a.nome}</option>))}
+            </select>
             <select aria-label="Filtrar vendedor" value={fVendedor} onChange={(e) => setFVendedor(e.target.value)} className={filterCls}>
               <option value="">Todos vendedores</option>
               {vendedores.map((v) => (<option key={v.id} value={v.id}>{v.nome}</option>))}
@@ -353,7 +359,7 @@ export function ComercialClient() {
             <button
               type="button"
               onClick={openCreate}
-              className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="mt-2 text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Adicionar o primeiro
             </button>
@@ -384,7 +390,7 @@ export function ComercialClient() {
                 <button
                   type="button"
                   onClick={() => handleCriarFaturamento(c)}
-                  className="rounded-md p-1.5 text-slate-500 hover:bg-white hover:text-indigo-600"
+                  className="rounded-md p-1.5 text-slate-500 hover:bg-white hover:text-blue-700"
                   aria-label="Criar Faturamento"
                   title="Criar Faturamento"
                 >
@@ -494,11 +500,15 @@ export function ComercialClient() {
 
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">Agência</label>
-              <input
-                value={form.agencia}
-                onChange={(e) => setForm((f) => ({ ...f, agencia: e.target.value }))}
+              <select
+                aria-label="Agência"
+                value={form.agencia_id}
+                onChange={(e) => setForm((f) => ({ ...f, agencia_id: e.target.value }))}
                 className={inputCls}
-              />
+              >
+                <option value="">Selecione...</option>
+                {agencias.map((a) => (<option key={a.id} value={a.id}>{a.nome}</option>))}
+              </select>
             </div>
 
             <div>

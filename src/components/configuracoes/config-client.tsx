@@ -340,7 +340,7 @@ export function ConfigClient() {
               onClick={() => setActiveId(tab.id)}
               className={`inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
                 active
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-blue-700 text-white shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
               }`}
             >
@@ -433,7 +433,7 @@ export function ConfigClient() {
             <button
               type="button"
               onClick={openCreate}
-              className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="mt-2 text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Adicionar o primeiro
             </button>
@@ -508,7 +508,7 @@ export function ConfigClient() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, [field.key]: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                   >
                     <option value="" disabled>
                       {opts.length
@@ -545,7 +545,7 @@ export function ConfigClient() {
                         : e.target.value;
                       setForm((f) => ({ ...f, [field.key]: val }));
                     }}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                   />
                 )}
               </div>

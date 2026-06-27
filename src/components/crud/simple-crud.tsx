@@ -26,9 +26,12 @@ import { downloadSheet, pickByHeader, readSheet, toISODate } from "@/lib/xlsx";
 export type SimpleField = {
   key: string;
   label: string;
-  type?: "text" | "date" | "number";
+  type?: "text" | "date" | "number" | "boolean";
   required?: boolean;
   placeholder?: string;
+  /** Rótulos para type "boolean" (default Sim/Não). */
+  trueLabel?: string;
+  falseLabel?: string;
 };
 
 export type SimpleCrudConfig = {
@@ -46,6 +49,12 @@ function norm(value: unknown): string {
 }
 
 function formatCell(field: SimpleField, raw: unknown): string {
+  if (field.type === "boolean") {
+    if (raw == null || raw === "") return "—";
+    return raw === true || raw === "true"
+      ? (field.trueLabel ?? "Sim")
+      : (field.falseLabel ?? "Não");
+  }
   const value = raw == null ? "" : String(raw);
   if (field.type === "date" && value) {
     const [y, m, d] = value.split("-");
@@ -98,7 +107,11 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
   function openCreate() {
     setEditing(null);
     setFormError(null);
-    setForm(Object.fromEntries(fields.map((f) => [f.key, ""])));
+    setForm(
+      Object.fromEntries(
+        fields.map((f) => [f.key, f.type === "boolean" ? "false" : ""]),
+      ),
+    );
     setModalOpen(true);
   }
 
@@ -132,6 +145,10 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
     try {
       const payload: Record<string, unknown> = {};
       for (const field of fields) {
+        if (field.type === "boolean") {
+          payload[field.key] = form[field.key] === "true";
+          continue;
+        }
         const v = (form[field.key] ?? "").trim();
         payload[field.key] =
           v === "" ? null : field.type === "number" ? Number(v) : v;
@@ -214,6 +231,11 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
           } else if (field.type === "number") {
             const v = String(raw ?? "").trim();
             payload[field.key] = v === "" ? null : Number(v);
+          } else if (field.type === "boolean") {
+            const s = norm(raw);
+            const t = norm(field.trueLabel ?? "Sim");
+            payload[field.key] =
+              s === t || s === "sim" || s === "true" || s === "1";
           } else {
             const v = String(raw ?? "").trim();
             payload[field.key] = v === "" ? null : v;
@@ -406,22 +428,36 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
               <label className="mb-1 block text-sm font-medium text-slate-700">
                 {field.label}
               </label>
-              <input
-                required={field.required || field.key === keyField}
-                type={
-                  field.type === "date"
-                    ? "date"
-                    : field.type === "number"
-                      ? "number"
-                      : "text"
-                }
-                placeholder={field.placeholder}
-                value={form[field.key] ?? ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, [field.key]: e.target.value }))
-                }
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              />
+              {field.type === "boolean" ? (
+                <select
+                  aria-label={field.label}
+                  value={form[field.key] ?? "false"}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, [field.key]: e.target.value }))
+                  }
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="true">{field.trueLabel ?? "Sim"}</option>
+                  <option value="false">{field.falseLabel ?? "Não"}</option>
+                </select>
+              ) : (
+                <input
+                  required={field.required || field.key === keyField}
+                  type={
+                    field.type === "date"
+                      ? "date"
+                      : field.type === "number"
+                        ? "number"
+                        : "text"
+                  }
+                  placeholder={field.placeholder}
+                  value={form[field.key] ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, [field.key]: e.target.value }))
+                  }
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                />
+              )}
             </div>
           ))}
 

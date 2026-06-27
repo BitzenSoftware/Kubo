@@ -9,11 +9,13 @@ import { deleteRow, updateRow } from "@/lib/config-data";
 import { listProdutos } from "@/lib/produtos-data";
 import {
   createEvento,
+  listEventoStatus,
   listEventos,
   listItens,
   montarIdEvento,
   replaceItens,
   type Evento,
+  type EventoStatus,
 } from "@/lib/eventos-data";
 
 type Produto = { id: string; codigo: string; nome: string };
@@ -23,6 +25,7 @@ type ModalTab = "dados" | "locacao" | "sublocacao";
 export function EventosClient() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [statuses, setStatuses] = useState<EventoStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +33,7 @@ export function EventosClient() {
   const [editing, setEditing] = useState<Evento | null>(null);
   const [tab, setTab] = useState<ModalTab>("dados");
   const [nome, setNome] = useState("");
+  const [statusId, setStatusId] = useState("");
   const [locacao, setLocacao] = useState<Line[]>([]);
   const [sublocacao, setSublocacao] = useState<Line[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
@@ -39,9 +43,14 @@ export function EventosClient() {
     setLoading(true);
     setError(null);
     try {
-      const [evs, prods] = await Promise.all([listEventos(), listProdutos()]);
+      const [evs, prods, sts] = await Promise.all([
+        listEventos(),
+        listProdutos(),
+        listEventoStatus(),
+      ]);
       setEventos(evs);
       setProdutos(prods.map((p) => ({ id: p.id, codigo: p.codigo, nome: p.nome })));
+      setStatuses(sts);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar os dados.");
     } finally {
@@ -61,6 +70,7 @@ export function EventosClient() {
     setEditing(null);
     setTab("dados");
     setNome("");
+    setStatusId("");
     setLocacao([]);
     setSublocacao([]);
     setFormError(null);
@@ -71,6 +81,7 @@ export function EventosClient() {
     setEditing(ev);
     setTab("dados");
     setNome(ev.nome);
+    setStatusId(ev.status_id ?? "");
     setLocacao([]);
     setSublocacao([]);
     setFormError(null);
@@ -104,9 +115,10 @@ export function EventosClient() {
 
     setSaving(true);
     try {
+      const status_id = statusId || null;
       let eventoId: string;
       if (editing) {
-        await updateRow("eventos", editing.id, { nome: nome.trim() });
+        await updateRow("eventos", editing.id, { nome: nome.trim(), status_id });
         eventoId = editing.id;
       } else {
         const seq = nextSeq();
@@ -114,6 +126,7 @@ export function EventosClient() {
           id_evento: montarIdEvento(seq),
           seq,
           nome: nome.trim(),
+          status_id,
         });
       }
       const itens = [
@@ -233,6 +246,24 @@ export function EventosClient() {
   const columns: Column<Evento>[] = [
     { key: "id_evento", header: "ID Evento", render: (e) => e.id_evento },
     { key: "nome", header: "Nome", render: (e) => e.nome },
+    {
+      key: "status",
+      header: "Status",
+      render: (e) =>
+        e.status ? (
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+              e.status.aloca
+                ? "bg-amber-100 text-amber-700"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {e.status.nome}
+          </span>
+        ) : (
+          "—"
+        ),
+    },
   ];
 
   const modalTabs: { id: ModalTab; label: string; count?: number }[] = [
@@ -381,6 +412,28 @@ export function EventosClient() {
                   onChange={(e) => setNome(e.target.value)}
                   className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Status
+                </label>
+                <select
+                  aria-label="Status"
+                  value={statusId}
+                  onChange={(e) => setStatusId(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="">Sem status</option>
+                  {statuses.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.nome} ({s.aloca ? "Aloca" : "Libera"})
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-400">
+                  Status que &quot;Aloca&quot; reserva os itens de Locação no
+                  estoque.
+                </p>
               </div>
             </div>
           )}

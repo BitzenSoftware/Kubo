@@ -14,6 +14,7 @@ export type Produto = {
   nome: string;
   seq: number;
   ativo: boolean;
+  qtd_atual?: number;
   categoria: { codigo: string; nome: string | null } | null;
 };
 

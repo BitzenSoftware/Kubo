@@ -6,6 +6,15 @@ export type Evento = {
   seq: number;
   nome: string;
   ativo: boolean;
+  status_id: string | null;
+  status: { nome: string; aloca: boolean } | null;
+};
+
+export type EventoStatus = {
+  id: string;
+  nome: string;
+  aloca: boolean;
+  ativo: boolean;
 };
 
 export type EventoItem = {
@@ -24,10 +33,21 @@ export function montarIdEvento(seq: number): string {
 export async function listEventos(): Promise<Evento[]> {
   const { data, error } = await getSupabase()
     .from("eventos")
-    .select("id, id_evento, seq, nome, ativo")
+    .select(
+      "id, id_evento, seq, nome, ativo, status_id, status:status_id(nome, aloca)",
+    )
     .order("seq", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as Evento[];
+  return (data ?? []) as unknown as Evento[];
+}
+
+export async function listEventoStatus(): Promise<EventoStatus[]> {
+  const { data, error } = await getSupabase()
+    .from("evento_status")
+    .select("id, nome, aloca, ativo")
+    .order("nome", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as EventoStatus[];
 }
 
 export async function listItens(eventoId: string): Promise<EventoItem[]> {
@@ -43,6 +63,7 @@ export async function createEvento(values: {
   id_evento: string;
   seq: number;
   nome: string;
+  status_id: string | null;
 }): Promise<string> {
   const { data, error } = await getSupabase()
     .from("eventos")

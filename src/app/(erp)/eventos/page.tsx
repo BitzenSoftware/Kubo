@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { EventosClient } from "@/components/eventos/eventos-client";
+import { EventosTabs } from "@/components/eventos/eventos-tabs";
 
 export const metadata: Metadata = {
   title: "Eventos — Kubo ERP",
 };
 
 export default function EventosPage() {
-  return <EventosClient />;
+  return <EventosTabs />;
 }

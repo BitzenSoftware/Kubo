@@ -45,6 +45,11 @@ export function ProdutosClient() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
 
+  // Filtros
+  const [fCodigo, setFCodigo] = useState("");
+  const [fNome, setFNome] = useState("");
+  const [fCategoria, setFCategoria] = useState("");
+
   async function load() {
     setLoading(true);
     setError(null);
@@ -243,6 +248,16 @@ export function ProdutosClient() {
     },
   ];
 
+  const produtosFiltrados = produtos.filter(
+    (p) =>
+      p.codigo.toLowerCase().includes(fCodigo.trim().toLowerCase()) &&
+      p.nome.toLowerCase().includes(fNome.trim().toLowerCase()) &&
+      (!fCategoria || p.categoria_id === fCategoria),
+  );
+
+  const filterInputCls =
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+
   return (
     <div className="space-y-6">
       <div>
@@ -307,6 +322,19 @@ export function ProdutosClient() {
           </div>
         </div>
 
+        {produtos.length > 0 && (
+          <div className="flex flex-wrap gap-3 border-b border-slate-200 px-5 py-3">
+            <input value={fCodigo} onChange={(e) => setFCodigo(e.target.value)} placeholder="Código" className={filterInputCls} />
+            <input value={fNome} onChange={(e) => setFNome(e.target.value)} placeholder="Nome" className={filterInputCls} />
+            <select aria-label="Filtrar categoria" value={fCategoria} onChange={(e) => setFCategoria(e.target.value)} className={filterInputCls}>
+              <option value="">Todas as categorias</option>
+              {categorias.map((c) => (
+                <option key={c.id} value={c.id}>{c.nome ? `${c.nome} (${c.codigo})` : c.codigo}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 px-5 py-14 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -323,9 +351,13 @@ export function ProdutosClient() {
               Adicionar o primeiro
             </button>
           </div>
+        ) : produtosFiltrados.length === 0 ? (
+          <div className="px-5 py-14 text-center text-sm text-slate-500">
+            Nenhum produto para os filtros.
+          </div>
         ) : (
           <DataTable<Produto>
-            rows={produtos}
+            rows={produtosFiltrados}
             getRowKey={(p) => p.id}
             columns={columns}
             actions={(p) => (

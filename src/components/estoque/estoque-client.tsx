@@ -10,6 +10,8 @@ export function EstoqueClient() {
   const [rows, setRows] = useState<EstoqueLinha[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fNome, setFNome] = useState("");
+  const [ocultarZero, setOcultarZero] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -80,6 +82,14 @@ export function EstoqueClient() {
     },
   ];
 
+  const termo = fNome.trim().toLowerCase();
+  const rowsFiltradas = rows.filter(
+    (r) =>
+      (r.codigo.toLowerCase().includes(termo) ||
+        r.nome.toLowerCase().includes(termo)) &&
+      (!ocultarZero || r.qtd_disponivel > 0),
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -97,6 +107,26 @@ export function EstoqueClient() {
           <h2 className="text-sm font-semibold text-slate-900">Produtos em estoque</h2>
         </div>
 
+        {rows.length > 0 && (
+          <div className="flex flex-wrap items-center gap-4 border-b border-slate-200 px-5 py-3">
+            <input
+              value={fNome}
+              onChange={(e) => setFNome(e.target.value)}
+              placeholder="Nome ou código"
+              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={ocultarZero}
+                onChange={(e) => setOcultarZero(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              Ocultar sem disponível
+            </label>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 px-5 py-14 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -106,9 +136,13 @@ export function EstoqueClient() {
           <div className="px-5 py-14 text-center text-sm text-slate-500">
             Nenhum produto cadastrado. Cadastre produtos no menu Produtos.
           </div>
+        ) : rowsFiltradas.length === 0 ? (
+          <div className="px-5 py-14 text-center text-sm text-slate-500">
+            Nenhum produto para os filtros.
+          </div>
         ) : (
           <DataTable<EstoqueLinha>
-            rows={rows}
+            rows={rowsFiltradas}
             getRowKey={(r) => r.id}
             columns={columns}
           />

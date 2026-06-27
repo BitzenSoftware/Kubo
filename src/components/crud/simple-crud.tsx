@@ -99,6 +99,7 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
+  const [busca, setBusca] = useState("");
 
   async function load() {
     setLoading(true);
@@ -335,6 +336,15 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
     render: (row) => formatCell(f, row[f.key], options),
   }));
 
+  const termo = busca.trim().toLowerCase();
+  const filteredRows = termo
+    ? rows.filter((row) =>
+        fields.some((f) =>
+          formatCell(f, row[f.key], options).toLowerCase().includes(termo),
+        ),
+      )
+    : rows;
+
   return (
     <div className="space-y-6">
       <div>
@@ -402,6 +412,18 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
           </div>
         </div>
 
+        {rows.length > 0 && (
+          <div className="border-b border-slate-200 px-5 py-3">
+            <input
+              type="search"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar..."
+              className="w-full max-w-xs rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 px-5 py-14 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -418,9 +440,13 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
               Adicionar o primeiro
             </button>
           </div>
+        ) : filteredRows.length === 0 ? (
+          <div className="px-5 py-14 text-center text-sm text-slate-500">
+            Nenhum resultado para “{busca}”.
+          </div>
         ) : (
           <DataTable<Row>
-            rows={rows}
+            rows={filteredRows}
             getRowKey={(row) => row.id}
             columns={columns}
             actions={(row) => {

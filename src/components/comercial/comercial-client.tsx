@@ -57,6 +57,15 @@ export function ComercialClient() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  // Filtros
+  const [fStatus, setFStatus] = useState("");
+  const [fCliente, setFCliente] = useState("");
+  const [fEvento, setFEvento] = useState("");
+  const [fAgencia, setFAgencia] = useState("");
+  const [fDataDe, setFDataDe] = useState("");
+  const [fDataAte, setFDataAte] = useState("");
+  const [fVendedor, setFVendedor] = useState("");
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Comercial | null>(null);
   const [form, setForm] = useState({ ...emptyForm });
@@ -257,6 +266,21 @@ export function ComercialClient() {
     "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
   const readonlyCls =
     "w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500";
+  const filterCls =
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+
+  const inc = (v: string | null, t: string) =>
+    (v ?? "").toLowerCase().includes(t.trim().toLowerCase());
+  const registrosFiltrados = registros.filter(
+    (c) =>
+      (!fStatus || c.status_comercial_id === fStatus) &&
+      inc(c.cliente?.nome ?? "", fCliente) &&
+      inc(c.evento?.nome ?? "", fEvento) &&
+      inc(c.agencia, fAgencia) &&
+      (!fVendedor || c.vendedor_id === fVendedor) &&
+      (!fDataDe || (c.data_evento_inicio ?? "") >= fDataDe) &&
+      (!fDataAte || (c.data_evento_inicio ?? "") <= fDataAte),
+  );
 
   return (
     <div className="space-y-6">
@@ -284,6 +308,28 @@ export function ComercialClient() {
           </Button>
         </div>
 
+        {registros.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-5 py-3">
+            <select aria-label="Filtrar status comercial" value={fStatus} onChange={(e) => setFStatus(e.target.value)} className={filterCls}>
+              <option value="">Todos os status</option>
+              {statuses.map((s) => (<option key={s.id} value={s.id}>{s.nome}</option>))}
+            </select>
+            <input value={fCliente} onChange={(e) => setFCliente(e.target.value)} placeholder="Cliente" className={filterCls} />
+            <input value={fEvento} onChange={(e) => setFEvento(e.target.value)} placeholder="Evento" className={filterCls} />
+            <input value={fAgencia} onChange={(e) => setFAgencia(e.target.value)} placeholder="Agência" className={filterCls} />
+            <select aria-label="Filtrar vendedor" value={fVendedor} onChange={(e) => setFVendedor(e.target.value)} className={filterCls}>
+              <option value="">Todos vendedores</option>
+              {vendedores.map((v) => (<option key={v.id} value={v.id}>{v.nome}</option>))}
+            </select>
+            <label className="flex items-center gap-1 text-sm text-slate-600">
+              Data evento
+              <input type="date" aria-label="Data evento de" value={fDataDe} onChange={(e) => setFDataDe(e.target.value)} className={filterCls} />
+              <span>até</span>
+              <input type="date" aria-label="Data evento até" value={fDataAte} onChange={(e) => setFDataAte(e.target.value)} className={filterCls} />
+            </label>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 px-5 py-14 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -300,9 +346,13 @@ export function ComercialClient() {
               Adicionar o primeiro
             </button>
           </div>
+        ) : registrosFiltrados.length === 0 ? (
+          <div className="px-5 py-14 text-center text-sm text-slate-500">
+            Nenhum pedido para os filtros.
+          </div>
         ) : (
           <DataTable<Comercial>
-            rows={registros}
+            rows={registrosFiltrados}
             getRowKey={(c) => c.id}
             columns={columns}
             actions={(c) => (

@@ -31,6 +31,10 @@ export function EventosClient() {
   const [dispById, setDispById] = useState<Record<string, number>>({});
   // Quantidade que ESTE evento já aloca por produto (para devolver à capacidade ao editar)
   const [ownByProduto, setOwnByProduto] = useState<Record<string, number>>({});
+  // Filtros
+  const [fNome, setFNome] = useState("");
+  const [fCliente, setFCliente] = useState("");
+  const [fStatus, setFStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -379,6 +383,15 @@ export function EventosClient() {
     { id: "sublocacao", label: "Sublocação", count: sublocacao.length },
   ];
 
+  const eventosFiltrados = eventos.filter(
+    (e) =>
+      e.nome.toLowerCase().includes(fNome.trim().toLowerCase()) &&
+      (e.cliente?.nome ?? "").toLowerCase().includes(fCliente.trim().toLowerCase()) &&
+      (!fStatus || e.status_id === fStatus),
+  );
+  const filterInputCls =
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+
   return (
     <div className="space-y-6">
       <div>
@@ -400,6 +413,19 @@ export function EventosClient() {
           </Button>
         </div>
 
+        {eventos.length > 0 && (
+          <div className="flex flex-wrap gap-3 border-b border-slate-200 px-5 py-3">
+            <input value={fNome} onChange={(e) => setFNome(e.target.value)} placeholder="Nome" className={filterInputCls} />
+            <input value={fCliente} onChange={(e) => setFCliente(e.target.value)} placeholder="Cliente" className={filterInputCls} />
+            <select aria-label="Filtrar status" value={fStatus} onChange={(e) => setFStatus(e.target.value)} className={filterInputCls}>
+              <option value="">Todos os status</option>
+              {statuses.map((s) => (
+                <option key={s.id} value={s.id}>{s.nome}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 px-5 py-14 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -416,9 +442,13 @@ export function EventosClient() {
               Adicionar o primeiro
             </button>
           </div>
+        ) : eventosFiltrados.length === 0 ? (
+          <div className="px-5 py-14 text-center text-sm text-slate-500">
+            Nenhum evento para os filtros.
+          </div>
         ) : (
           <DataTable<Evento>
-            rows={eventos}
+            rows={eventosFiltrados}
             getRowKey={(e) => e.id}
             columns={columns}
             actions={(ev) => (

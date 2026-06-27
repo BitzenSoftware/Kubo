@@ -5,7 +5,7 @@ import { Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Modal } from "@/components/ui/modal";
-import { deleteRow, updateRow } from "@/lib/config-data";
+import { deleteRow, listRows, updateRow } from "@/lib/config-data";
 import { listProdutos } from "@/lib/produtos-data";
 import {
   createEvento,
@@ -26,6 +26,7 @@ export function EventosClient() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [statuses, setStatuses] = useState<EventoStatus[]>([]);
+  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +35,7 @@ export function EventosClient() {
   const [tab, setTab] = useState<ModalTab>("dados");
   const [nome, setNome] = useState("");
   const [statusId, setStatusId] = useState("");
+  const [clienteId, setClienteId] = useState("");
   const [locacao, setLocacao] = useState<Line[]>([]);
   const [sublocacao, setSublocacao] = useState<Line[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
@@ -43,14 +45,18 @@ export function EventosClient() {
     setLoading(true);
     setError(null);
     try {
-      const [evs, prods, sts] = await Promise.all([
+      const [evs, prods, sts, cls] = await Promise.all([
         listEventos(),
         listProdutos(),
         listEventoStatus(),
+        listRows("clientes"),
       ]);
       setEventos(evs);
       setProdutos(prods.map((p) => ({ id: p.id, codigo: p.codigo, nome: p.nome })));
       setStatuses(sts);
+      setClientes(
+        cls.map((c) => ({ id: String(c.id), nome: String(c.nome ?? "") })),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar os dados.");
     } finally {
@@ -71,6 +77,7 @@ export function EventosClient() {
     setTab("dados");
     setNome("");
     setStatusId("");
+    setClienteId("");
     setLocacao([]);
     setSublocacao([]);
     setFormError(null);
@@ -82,6 +89,7 @@ export function EventosClient() {
     setTab("dados");
     setNome(ev.nome);
     setStatusId(ev.status_id ?? "");
+    setClienteId(ev.cliente_id ?? "");
     setLocacao([]);
     setSublocacao([]);
     setFormError(null);
@@ -108,6 +116,11 @@ export function EventosClient() {
       setTab("dados");
       return;
     }
+    if (!clienteId) {
+      setFormError("Selecione o cliente.");
+      setTab("dados");
+      return;
+    }
     if ([...locacao, ...sublocacao].some((l) => !l.produto_id)) {
       setFormError("Há uma linha de artigo sem produto selecionado.");
       return;
@@ -116,9 +129,14 @@ export function EventosClient() {
     setSaving(true);
     try {
       const status_id = statusId || null;
+      const cliente_id = clienteId || null;
       let eventoId: string;
       if (editing) {
-        await updateRow("eventos", editing.id, { nome: nome.trim(), status_id });
+        await updateRow("eventos", editing.id, {
+          nome: nome.trim(),
+          status_id,
+          cliente_id,
+        });
         eventoId = editing.id;
       } else {
         const seq = nextSeq();
@@ -127,6 +145,7 @@ export function EventosClient() {
           seq,
           nome: nome.trim(),
           status_id,
+          cliente_id,
         });
       }
       const itens = [
@@ -246,6 +265,11 @@ export function EventosClient() {
   const columns: Column<Evento>[] = [
     { key: "id_evento", header: "ID Evento", render: (e) => e.id_evento },
     { key: "nome", header: "Nome", render: (e) => e.nome },
+    {
+      key: "cliente",
+      header: "Cliente",
+      render: (e) => e.cliente?.nome ?? "—",
+    },
     {
       key: "status",
       header: "Status",
@@ -412,6 +436,29 @@ export function EventosClient() {
                   onChange={(e) => setNome(e.target.value)}
                   className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Cliente
+                </label>
+                <select
+                  required
+                  aria-label="Cliente"
+                  value={clienteId}
+                  onChange={(e) => setClienteId(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="" disabled>
+                    {clientes.length
+                      ? "Selecione o cliente..."
+                      : "Cadastre um Cliente primeiro"}
+                  </option>
+                  {clientes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">

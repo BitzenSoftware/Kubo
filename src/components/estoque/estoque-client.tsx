@@ -84,10 +84,6 @@ export function EstoqueClient() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Estoque</h1>
-        <p className="text-sm text-slate-500">
-          Qtd alocada = locações de eventos com status que aloca. Disponível =
-          atual − alocada.
-        </p>
       </div>
 
       {error && (

@@ -211,7 +211,6 @@ export function ContasPagarClient() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Contas a Pagar</h1>
-        <p className="text-sm text-slate-500">Lançamentos a pagar.</p>
       </div>
 
       {error && (

@@ -247,9 +247,6 @@ export function ProdutosClient() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Produtos</h1>
-        <p className="text-sm text-slate-500">
-          O código é gerado automaticamente pela categoria (ex: ELT000001).
-        </p>
       </div>
 
       {error && (

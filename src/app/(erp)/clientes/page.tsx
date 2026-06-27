@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 const config: SimpleCrudConfig = {
   table: "clientes",
   title: "Clientes",
-  subtitle: "Cadastro de clientes.",
   singular: "Cliente",
   keyField: "nome",
   fields: [

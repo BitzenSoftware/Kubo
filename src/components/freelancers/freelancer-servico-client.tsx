@@ -208,7 +208,6 @@ export function FreelancerServicoClient() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Freelancers</h1>
-        <p className="text-sm text-slate-500">Serviços de freelancers por evento.</p>
       </div>
 
       {error && (

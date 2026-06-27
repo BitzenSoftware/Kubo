@@ -262,7 +262,6 @@ export function ComercialClient() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Comercial</h1>
-        <p className="text-sm text-slate-500">Pedidos comerciais.</p>
       </div>
 
       {error && (

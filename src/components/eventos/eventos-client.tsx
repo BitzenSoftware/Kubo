@@ -383,9 +383,6 @@ export function EventosClient() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Eventos</h1>
-        <p className="text-sm text-slate-500">
-          O ID do evento é gerado automaticamente (EV-000001).
-        </p>
       </div>
 
       {error && (

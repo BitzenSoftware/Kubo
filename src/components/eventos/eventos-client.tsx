@@ -7,6 +7,7 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { Modal } from "@/components/ui/modal";
 import { deleteRow, listRows, updateRow } from "@/lib/config-data";
 import { listProdutos } from "@/lib/produtos-data";
+import { listEstoque } from "@/lib/estoque-data";
 import {
   createEvento,
   listEventoStatus,
@@ -27,6 +28,7 @@ export function EventosClient() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [statuses, setStatuses] = useState<EventoStatus[]>([]);
   const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
+  const [dispById, setDispById] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,17 +47,21 @@ export function EventosClient() {
     setLoading(true);
     setError(null);
     try {
-      const [evs, prods, sts, cls] = await Promise.all([
+      const [evs, prods, sts, cls, est] = await Promise.all([
         listEventos(),
         listProdutos(),
         listEventoStatus(),
         listRows("clientes"),
+        listEstoque(),
       ]);
       setEventos(evs);
       setProdutos(prods.map((p) => ({ id: p.id, codigo: p.codigo, nome: p.nome })));
       setStatuses(sts);
       setClientes(
         cls.map((c) => ({ id: String(c.id), nome: String(c.nome ?? "") })),
+      );
+      setDispById(
+        Object.fromEntries(est.map((e) => [e.id, e.qtd_disponivel])),
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar os dados.");
@@ -192,7 +198,11 @@ export function EventosClient() {
   }
 
   // Editor de linhas (artigo + quantidade) reutilizado por Locação e Sublocação
-  function renderItens(lines: Line[], setLines: (fn: (l: Line[]) => Line[]) => void) {
+  function renderItens(
+    lines: Line[],
+    setLines: (fn: (l: Line[]) => Line[]) => void,
+    options: Produto[],
+  ) {
     const add = () =>
       setLines((ls) => [
         ...ls,
@@ -226,11 +236,11 @@ export function EventosClient() {
                   className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 >
                   <option value="" disabled>
-                    {produtos.length
+                    {options.length
                       ? "Selecione o produto..."
-                      : "Cadastre um Produto primeiro"}
+                      : "Nenhum produto disponível"}
                   </option>
-                  {produtos.map((p) => (
+                  {options.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.codigo} — {p.nome}
                     </option>
@@ -261,6 +271,14 @@ export function EventosClient() {
       </div>
     );
   }
+
+  // Locação: só produtos com saldo disponível (mantém os já selecionados nesta locação)
+  const selecionadosLocacao = new Set(
+    locacao.map((l) => l.produto_id).filter(Boolean),
+  );
+  const locacaoOptions = produtos.filter(
+    (p) => (dispById[p.id] ?? 0) > 0 || selecionadosLocacao.has(p.id),
+  );
 
   const columns: Column<Evento>[] = [
     { key: "id_evento", header: "ID Evento", render: (e) => e.id_evento },
@@ -485,8 +503,10 @@ export function EventosClient() {
             </div>
           )}
 
-          {tab === "locacao" && renderItens(locacao, setLocacao)}
-          {tab === "sublocacao" && renderItens(sublocacao, setSublocacao)}
+          {tab === "locacao" &&
+            renderItens(locacao, setLocacao, locacaoOptions)}
+          {tab === "sublocacao" &&
+            renderItens(sublocacao, setSublocacao, produtos)}
 
           {formError && (
             <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">

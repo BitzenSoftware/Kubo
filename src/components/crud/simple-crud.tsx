@@ -26,13 +26,17 @@ import { downloadSheet, pickByHeader, readSheet, toISODate } from "@/lib/xlsx";
 export type SimpleField = {
   key: string;
   label: string;
-  type?: "text" | "date" | "number" | "boolean";
+  type?: "text" | "date" | "number" | "boolean" | "select";
   required?: boolean;
   placeholder?: string;
   /** Rótulos para type "boolean" (default Sim/Não). */
   trueLabel?: string;
   falseLabel?: string;
+  /** Para type "select": tabela de onde vêm as opções (value = id, label = nome). */
+  optionsFrom?: string;
 };
+
+type SelOption = { id: string; nome: string };
 
 export type SimpleCrudConfig = {
   table: string;
@@ -48,12 +52,20 @@ function norm(value: unknown): string {
   return String(value ?? "").trim().toLowerCase();
 }
 
-function formatCell(field: SimpleField, raw: unknown): string {
+function formatCell(
+  field: SimpleField,
+  raw: unknown,
+  options?: Record<string, SelOption[]>,
+): string {
   if (field.type === "boolean") {
     if (raw == null || raw === "") return "—";
     return raw === true || raw === "true"
       ? (field.trueLabel ?? "Sim")
       : (field.falseLabel ?? "Não");
+  }
+  if (field.type === "select") {
+    const opts = field.optionsFrom ? (options?.[field.optionsFrom] ?? []) : [];
+    return opts.find((o) => o.id === raw)?.nome ?? "—";
   }
   const value = raw == null ? "" : String(raw);
   if (field.type === "date" && value) {
@@ -74,6 +86,7 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
   const refLabel = fields.find((f) => f.key === refKey)?.label ?? "Nome";
 
   const [rows, setRows] = useState<Row[]>([]);
+  const [options, setOptions] = useState<Record<string, SelOption[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -92,6 +105,28 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
     setError(null);
     try {
       setRows(await listRows(table));
+      const selTables = [
+        ...new Set(
+          fields
+            .filter((f) => f.type === "select" && f.optionsFrom)
+            .map((f) => f.optionsFrom as string),
+        ),
+      ];
+      if (selTables.length) {
+        const entries = await Promise.all(
+          selTables.map(
+            async (t) =>
+              [
+                t,
+                (await listRows(t)).map((r) => ({
+                  id: String(r.id),
+                  nome: String(r.nome ?? ""),
+                })),
+              ] as const,
+          ),
+        );
+        setOptions(Object.fromEntries(entries));
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar os dados.");
     } finally {
@@ -147,6 +182,10 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
       for (const field of fields) {
         if (field.type === "boolean") {
           payload[field.key] = form[field.key] === "true";
+          continue;
+        }
+        if (field.type === "select") {
+          payload[field.key] = form[field.key] || null;
           continue;
         }
         const v = (form[field.key] ?? "").trim();
@@ -236,6 +275,12 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
             const t = norm(field.trueLabel ?? "Sim");
             payload[field.key] =
               s === t || s === "sim" || s === "true" || s === "1";
+          } else if (field.type === "select" && field.optionsFrom) {
+            const nome = norm(raw);
+            const opt = (options[field.optionsFrom] ?? []).find(
+              (o) => norm(o.nome) === nome,
+            );
+            payload[field.key] = opt?.id ?? null;
           } else {
             const v = String(raw ?? "").trim();
             payload[field.key] = v === "" ? null : v;
@@ -287,7 +332,7 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
   const columns: Column<Row>[] = fields.map((f) => ({
     key: f.key,
     header: f.label,
-    render: (row) => formatCell(f, row[f.key]),
+    render: (row) => formatCell(f, row[f.key], options),
   }));
 
   return (
@@ -439,6 +484,25 @@ export function SimpleCrud({ config }: { config: SimpleCrudConfig }) {
                 >
                   <option value="true">{field.trueLabel ?? "Sim"}</option>
                   <option value="false">{field.falseLabel ?? "Não"}</option>
+                </select>
+              ) : field.type === "select" ? (
+                <select
+                  required={field.required || field.key === keyField}
+                  aria-label={field.label}
+                  value={form[field.key] ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, [field.key]: e.target.value }))
+                  }
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="">Selecione...</option>
+                  {(field.optionsFrom ? (options[field.optionsFrom] ?? []) : []).map(
+                    (o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.nome}
+                      </option>
+                    ),
+                  )}
                 </select>
               ) : (
                 <input

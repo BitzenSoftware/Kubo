@@ -3,6 +3,7 @@ import {
   Boxes,
   Briefcase,
   CalendarDays,
+  Contact,
   LayoutDashboard,
   Package,
   Receipt,
@@ -51,6 +52,10 @@ export const menu: MenuGroup[] = [
   {
     label: "Comercial",
     items: [{ label: "Comercial", href: "/comercial", icon: Briefcase }],
+  },
+  {
+    label: "Freelancers",
+    items: [{ label: "Freelancers", href: "/freelancers", icon: Contact }],
   },
   {
     label: "Financeiro",

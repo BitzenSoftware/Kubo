@@ -51,18 +51,6 @@ export const configTabs: ConfigTab[] = [
     fields: [{ key: "nome", label: "Nome", type: "text" }],
   },
   {
-    id: "freelancers",
-    table: "freelancers",
-    label: "Freelancers",
-    singular: "Freelancer",
-    fields: [
-      { key: "nome", label: "Nome", type: "text" },
-      { key: "cpf", label: "CPF", type: "text", placeholder: "000.000.000-00" },
-      { key: "rg", label: "RG", type: "text" },
-      { key: "nascimento", label: "Data de Nascimento", type: "date" },
-    ],
-  },
-  {
     id: "plano-contas",
     table: "plano_contas",
     label: "Plano de Contas",
@@ -82,13 +70,6 @@ export const configTabs: ConfigTab[] = [
     table: "grupo_plano",
     label: "Grupo do Plano",
     singular: "Grupo do Plano",
-    fields: [{ key: "nome", label: "Nome", type: "text" }],
-  },
-  {
-    id: "categoria-freelancer",
-    table: "categoria_freelancer",
-    label: "Categoria Freelancer",
-    singular: "Categoria",
     fields: [{ key: "nome", label: "Nome", type: "text" }],
   },
   {

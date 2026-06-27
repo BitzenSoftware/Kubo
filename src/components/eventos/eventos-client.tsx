@@ -423,6 +423,11 @@ export function EventosClient() {
                 <option key={s.id} value={s.id}>{s.nome}</option>
               ))}
             </select>
+            {(fNome || fCliente || fStatus) && (
+              <Button type="button" variant="outline" onClick={() => { setFNome(""); setFCliente(""); setFStatus(""); }}>
+                Limpar filtros
+              </Button>
+            )}
           </div>
         )}
 

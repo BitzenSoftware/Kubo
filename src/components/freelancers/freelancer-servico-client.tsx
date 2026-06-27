@@ -275,6 +275,18 @@ export function FreelancerServicoClient() {
               <span>até</span>
               <input type="date" aria-label="Data evento até" value={fDataAte} onChange={(e) => setFDataAte(e.target.value)} className={filterCls} />
             </label>
+            {(fCliente || fFreelancer || fEvento || fCategoria || fPlano || fStatus || fDataDe || fDataAte) && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setFCliente(""); setFFreelancer(""); setFEvento(""); setFCategoria("");
+                  setFPlano(""); setFStatus(""); setFDataDe(""); setFDataAte("");
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
           </div>
         )}
 

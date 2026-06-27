@@ -292,6 +292,18 @@ export function ContasPagarClient() {
               <span>até</span>
               <input type="date" aria-label="Vencimento até" value={fVencAte} onChange={(e) => setFVencAte(e.target.value)} className={filterCls} />
             </label>
+            {(fCliente || fEvento || fCategoria || fEmpresa || fGrupo || fFornecedor || fStatus || fVencDe || fVencAte) && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setFCliente(""); setFEvento(""); setFCategoria(""); setFEmpresa("");
+                  setFGrupo(""); setFFornecedor(""); setFStatus(""); setFVencDe(""); setFVencAte("");
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
           </div>
         )}
 

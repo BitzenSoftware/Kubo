@@ -355,6 +355,18 @@ export function FaturamentoClient() {
               <span>até</span>
               <input type="date" aria-label="Recebimento até" value={fRecAte} onChange={(e) => setFRecAte(e.target.value)} className={filterCls} />
             </label>
+            {(fCliente || fEvento || fEmpresa || fStatus || fTipo || fTaxa || fEmisDe || fEmisAte || fRecDe || fRecAte) && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setFCliente(""); setFEvento(""); setFEmpresa(""); setFStatus("");
+                  setFTipo(""); setFTaxa(""); setFEmisDe(""); setFEmisAte(""); setFRecDe(""); setFRecAte("");
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
           </div>
         )}
 

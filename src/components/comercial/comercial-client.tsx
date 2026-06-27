@@ -327,6 +327,18 @@ export function ComercialClient() {
               <span>até</span>
               <input type="date" aria-label="Data evento até" value={fDataAte} onChange={(e) => setFDataAte(e.target.value)} className={filterCls} />
             </label>
+            {(fStatus || fCliente || fEvento || fAgencia || fVendedor || fDataDe || fDataAte) && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setFStatus(""); setFCliente(""); setFEvento(""); setFAgencia("");
+                  setFVendedor(""); setFDataDe(""); setFDataAte("");
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
           </div>
         )}
 

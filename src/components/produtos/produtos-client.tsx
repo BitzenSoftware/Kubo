@@ -332,6 +332,11 @@ export function ProdutosClient() {
                 <option key={c.id} value={c.id}>{c.nome ? `${c.nome} (${c.codigo})` : c.codigo}</option>
               ))}
             </select>
+            {(fCodigo || fNome || fCategoria) && (
+              <Button type="button" variant="outline" onClick={() => { setFCodigo(""); setFNome(""); setFCategoria(""); }}>
+                Limpar filtros
+              </Button>
+            )}
           </div>
         )}
 

@@ -124,6 +124,15 @@ export function EstoqueClient() {
               />
               Ocultar sem disponível
             </label>
+            {(fNome || ocultarZero) && (
+              <button
+                type="button"
+                onClick={() => { setFNome(""); setOcultarZero(false); }}
+                className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Limpar filtros
+              </button>
+            )}
           </div>
         )}
 

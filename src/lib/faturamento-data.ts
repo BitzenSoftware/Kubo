@@ -22,6 +22,44 @@ export type Faturamento = {
   tipo: { nome: string } | null;
 };
 
+/** Garante que exista um Status Recebimento com este nome e devolve o id. */
+export async function ensureStatusRecebimento(nome: string): Promise<string> {
+  const sb = getSupabase();
+  const { data: found, error: e1 } = await sb
+    .from("status_recebimento")
+    .select("id")
+    .ilike("nome", nome)
+    .limit(1)
+    .maybeSingle();
+  if (e1) throw e1;
+  if (found?.id) return found.id as string;
+  const { data, error } = await sb
+    .from("status_recebimento")
+    .insert({ nome })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return (data as { id: string }).id;
+}
+
+/** Cria um Faturamento a partir de um pedido Comercial (campos correspondentes). */
+export async function criarFaturamentoDeComercial(c: {
+  evento_id: string | null;
+  cliente_id: string | null;
+  valor_orcado: number | null;
+  empresa_id: string | null;
+}): Promise<void> {
+  const statusId = await ensureStatusRecebimento("Pendente");
+  const { error } = await getSupabase().from("faturamento").insert({
+    evento_id: c.evento_id,
+    cliente_id: c.cliente_id,
+    valor_bruto: c.valor_orcado,
+    empresa_id: c.empresa_id,
+    status_recebimento_id: statusId,
+  });
+  if (error) throw error;
+}
+
 export async function listFaturamento(): Promise<Faturamento[]> {
   const { data, error } = await getSupabase()
     .from("faturamento")

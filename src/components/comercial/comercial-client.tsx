@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Receipt, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Modal } from "@/components/ui/modal";
 import { deleteRow, insertRow, listRows, updateRow } from "@/lib/config-data";
 import { listEventos } from "@/lib/eventos-data";
 import { listComercial, type Comercial } from "@/lib/comercial-data";
+import { criarFaturamentoDeComercial } from "@/lib/faturamento-data";
 
 type Opt = { id: string; nome: string };
 type EventoOpt = { id: string; id_evento: string; nome: string; cliente_id: string | null };
@@ -25,6 +26,7 @@ const emptyForm = {
   vendedor_id: "",
   valor_orcado: "",
   versao_id: "",
+  empresa_id: "",
 };
 
 function fmtData(v: string | null): string {
@@ -50,8 +52,10 @@ export function ComercialClient() {
   const [statuses, setStatuses] = useState<Opt[]>([]);
   const [vendedores, setVendedores] = useState<Opt[]>([]);
   const [versoes, setVersoes] = useState<Opt[]>([]);
+  const [empresas, setEmpresas] = useState<Opt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Comercial | null>(null);
@@ -63,13 +67,14 @@ export function ComercialClient() {
     setLoading(true);
     setError(null);
     try {
-      const [regs, evs, cls, sts, vds, vrs] = await Promise.all([
+      const [regs, evs, cls, sts, vds, vrs, emps] = await Promise.all([
         listComercial(),
         listEventos(),
         listRows("clientes"),
         listRows("status_comercial"),
         listRows("vendedor"),
         listRows("versao"),
+        listRows("empresa"),
       ]);
       setRegistros(regs);
       setEventos(
@@ -86,6 +91,7 @@ export function ComercialClient() {
       setStatuses(toOpt(sts));
       setVendedores(toOpt(vds));
       setVersoes(toOpt(vrs));
+      setEmpresas(toOpt(emps));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar os dados.");
     } finally {
@@ -120,6 +126,7 @@ export function ComercialClient() {
       vendedor_id: c.vendedor_id ?? "",
       valor_orcado: c.valor_orcado == null ? "" : String(c.valor_orcado),
       versao_id: c.versao_id ?? "",
+      empresa_id: c.empresa_id ?? "",
     });
     setModalOpen(true);
   }
@@ -152,6 +159,7 @@ export function ComercialClient() {
         vendedor_id: form.vendedor_id || null,
         valor_orcado: form.valor_orcado === "" ? null : Number(form.valor_orcado),
         versao_id: form.versao_id || null,
+        empresa_id: form.empresa_id || null,
       };
       if (editing) {
         await updateRow("comercial", editing.id, payload);
@@ -188,6 +196,25 @@ export function ComercialClient() {
     }
   }
 
+  async function handleCriarFaturamento(c: Comercial) {
+    if (!window.confirm("Criar um Faturamento a partir deste pedido?")) return;
+    setError(null);
+    setNotice(null);
+    try {
+      await criarFaturamentoDeComercial({
+        evento_id: c.evento_id,
+        cliente_id: c.cliente_id,
+        valor_orcado: c.valor_orcado,
+        empresa_id: c.empresa_id,
+      });
+      setNotice(
+        "Faturamento criado (status Pendente). Abra o menu Faturamento e edite os campos restantes.",
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao criar o faturamento.");
+    }
+  }
+
   const columns: Column<Comercial>[] = [
     { key: "id_evento", header: "ID Evento", render: (c) => c.evento?.id_evento ?? "—" },
     { key: "data_pedido", header: "Data Pedido", render: (c) => fmtData(c.data_pedido) },
@@ -208,6 +235,7 @@ export function ComercialClient() {
     { key: "agencia", header: "Agência", render: (c) => c.agencia ?? "—" },
     { key: "responsavel", header: "Responsável", render: (c) => c.responsavel ?? "—" },
     { key: "local", header: "Local", render: (c) => c.local ?? "—" },
+    { key: "empresa", header: "Empresa", render: (c) => c.empresa?.nome ?? "—" },
     {
       key: "data_evento",
       header: "Data Evento",
@@ -233,6 +261,11 @@ export function ComercialClient() {
       {error && (
         <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
+        </div>
+      )}
+      {notice && (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {notice}
         </div>
       )}
 
@@ -279,6 +312,15 @@ export function ComercialClient() {
                   }`}
                 >
                   {c.ativo ? "Ativo" : "Inativo"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCriarFaturamento(c)}
+                  className="rounded-md p-1.5 text-slate-500 hover:bg-white hover:text-indigo-600"
+                  aria-label="Criar Faturamento"
+                  title="Criar Faturamento"
+                >
+                  <Receipt className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
@@ -407,6 +449,21 @@ export function ComercialClient() {
                 onChange={(e) => setForm((f) => ({ ...f, local: e.target.value }))}
                 className={inputCls}
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Empresa</label>
+              <select
+                aria-label="Empresa"
+                value={form.empresa_id}
+                onChange={(e) => setForm((f) => ({ ...f, empresa_id: e.target.value }))}
+                className={inputCls}
+              >
+                <option value="">Selecione...</option>
+                {empresas.map((emp) => (
+                  <option key={emp.id} value={emp.id}>{emp.nome}</option>
+                ))}
+              </select>
             </div>
 
             <div>

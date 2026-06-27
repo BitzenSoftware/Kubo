@@ -29,6 +29,8 @@ export function EventosClient() {
   const [statuses, setStatuses] = useState<EventoStatus[]>([]);
   const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
   const [dispById, setDispById] = useState<Record<string, number>>({});
+  // Quantidade que ESTE evento já aloca por produto (para devolver à capacidade ao editar)
+  const [ownByProduto, setOwnByProduto] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,6 +88,7 @@ export function EventosClient() {
     setClienteId("");
     setLocacao([]);
     setSublocacao([]);
+    setOwnByProduto({});
     setFormError(null);
     setModalOpen(true);
   }
@@ -107,8 +110,14 @@ export function EventosClient() {
         produto_id: i.produto_id,
         quantidade: i.quantidade,
       });
-      setLocacao(itens.filter((i) => i.tipo === "locacao").map(toLine));
+      const locacaoItens = itens.filter((i) => i.tipo === "locacao");
+      setLocacao(locacaoItens.map(toLine));
       setSublocacao(itens.filter((i) => i.tipo === "sublocacao").map(toLine));
+      const own: Record<string, number> = {};
+      for (const i of locacaoItens) {
+        own[i.produto_id] = (own[i.produto_id] ?? 0) + i.quantidade;
+      }
+      setOwnByProduto(own);
     } catch {
       setFormError("Erro ao carregar os itens do evento.");
     }
@@ -202,6 +211,7 @@ export function EventosClient() {
     lines: Line[],
     setLines: (fn: (l: Line[]) => Line[]) => void,
     options: Produto[],
+    getMax?: (produtoId: string, lineKey: string) => number | undefined,
   ) {
     const add = () =>
       setLines((ls) => [
@@ -232,7 +242,17 @@ export function EventosClient() {
                 <select
                   aria-label="Produto"
                   value={line.produto_id}
-                  onChange={(e) => update(line.key, { produto_id: e.target.value })}
+                  onChange={(e) => {
+                    const pid = e.target.value;
+                    const m = getMax?.(pid, line.key);
+                    update(line.key, {
+                      produto_id: pid,
+                      quantidade:
+                        m != null
+                          ? Math.min(Math.max(1, line.quantidade || 1), Math.max(1, m))
+                          : line.quantidade,
+                    });
+                  }}
                   className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 >
                   <option value="" disabled>
@@ -249,10 +269,21 @@ export function EventosClient() {
                 <input
                   type="number"
                   min={1}
+                  max={getMax?.(line.produto_id, line.key)}
                   aria-label="Quantidade"
                   value={line.quantidade}
-                  onChange={(e) =>
-                    update(line.key, { quantidade: Number(e.target.value) })
+                  onChange={(e) => {
+                    const m = getMax?.(line.produto_id, line.key);
+                    let v = Number(e.target.value);
+                    if (!Number.isFinite(v)) v = 1;
+                    if (m != null && v > m) v = m;
+                    if (v < 1) v = 1;
+                    update(line.key, { quantidade: v });
+                  }}
+                  title={
+                    getMax
+                      ? `Máximo disponível: ${getMax(line.produto_id, line.key) ?? 0}`
+                      : undefined
                   }
                   className="w-20 rounded-md border border-slate-300 bg-white px-2 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 />
@@ -279,6 +310,17 @@ export function EventosClient() {
   const locacaoOptions = produtos.filter(
     (p) => (dispById[p.id] ?? 0) > 0 || selecionadosLocacao.has(p.id),
   );
+
+  // Máximo que uma linha de Locação pode pedir = disponível + o que este evento
+  // já alocava do produto − o que outras linhas da locação já pediram do mesmo.
+  function getMaxLocacao(produtoId: string, lineKey: string): number | undefined {
+    if (!produtoId) return undefined;
+    const base = (dispById[produtoId] ?? 0) + (ownByProduto[produtoId] ?? 0);
+    const usadoOutras = locacao
+      .filter((l) => l.key !== lineKey && l.produto_id === produtoId)
+      .reduce((s, l) => s + (l.quantidade || 0), 0);
+    return Math.max(0, base - usadoOutras);
+  }
 
   const columns: Column<Evento>[] = [
     { key: "id_evento", header: "ID Evento", render: (e) => e.id_evento },
@@ -504,7 +546,7 @@ export function EventosClient() {
           )}
 
           {tab === "locacao" &&
-            renderItens(locacao, setLocacao, locacaoOptions)}
+            renderItens(locacao, setLocacao, locacaoOptions, getMaxLocacao)}
           {tab === "sublocacao" &&
             renderItens(sublocacao, setSublocacao, produtos)}
 

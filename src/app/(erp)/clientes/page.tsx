@@ -10,6 +10,7 @@ const config: SimpleCrudConfig = {
   title: "Clientes",
   subtitle: "Cadastro de clientes.",
   singular: "Cliente",
+  keyField: "nome",
   fields: [
     { key: "nome", label: "Nome", required: true },
     { key: "cnpj", label: "CNPJ", placeholder: "00.000.000/0000-00" },

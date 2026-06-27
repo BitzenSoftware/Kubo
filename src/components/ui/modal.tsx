@@ -8,13 +8,15 @@ type Props = {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  size?: "md" | "lg" | "xl";
+  size?: "md" | "lg" | "xl" | "2xl" | "full";
 };
 
 const sizes = {
   md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-2xl",
+  "2xl": "max-w-4xl",
+  full: "max-w-[1400px]",
 };
 
 export function Modal({ open, title, onClose, children, size = "md" }: Props) {
@@ -35,10 +37,10 @@ export function Modal({ open, title, onClose, children, size = "md" }: Props) {
       onMouseDown={onClose}
     >
       <div
-        className={`w-full ${sizes[size]} rounded-xl bg-white shadow-xl`}
+        className={`flex max-h-[90vh] w-full ${sizes[size]} flex-col rounded-xl bg-white shadow-xl`}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
           <h2 className="text-base font-semibold text-slate-900">{title}</h2>
           <button
             type="button"
@@ -49,7 +51,7 @@ export function Modal({ open, title, onClose, children, size = "md" }: Props) {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="px-5 py-4">{children}</div>
+        <div className="overflow-y-auto px-5 py-4">{children}</div>
       </div>
     </div>
   );

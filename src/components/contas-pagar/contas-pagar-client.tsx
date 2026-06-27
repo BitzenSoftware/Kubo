@@ -289,7 +289,7 @@ export function ContasPagarClient() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        size="xl"
+        size="2xl"
         title={editing ? "Editar Conta" : "Nova Conta a Pagar"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">

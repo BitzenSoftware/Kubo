@@ -49,6 +49,17 @@ export function ContasPagarClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filtros
+  const [fCliente, setFCliente] = useState("");
+  const [fEvento, setFEvento] = useState("");
+  const [fCategoria, setFCategoria] = useState("");
+  const [fEmpresa, setFEmpresa] = useState("");
+  const [fGrupo, setFGrupo] = useState("");
+  const [fFornecedor, setFFornecedor] = useState("");
+  const [fStatus, setFStatus] = useState("");
+  const [fVencDe, setFVencDe] = useState("");
+  const [fVencAte, setFVencAte] = useState("");
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ContaPagar | null>(null);
   const [form, setForm] = useState({ ...emptyForm });
@@ -206,6 +217,29 @@ export function ContasPagarClient() {
   function readonlyCls() {
     return "w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500";
   }
+  const filterCls =
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+
+  const gruposContas = Array.from(
+    new Set(categorias.map((c) => c.grupo_nome).filter(Boolean)),
+  ) as string[];
+  const fornecedores = Array.from(
+    new Set(contas.map((c) => c.fornecedor).filter(Boolean)),
+  ) as string[];
+  const inc = (v: string | null, t: string) =>
+    (v ?? "").toLowerCase().includes(t.trim().toLowerCase());
+  const contasFiltradas = contas.filter(
+    (c) =>
+      inc(c.evento?.cliente?.nome ?? "", fCliente) &&
+      inc(c.evento?.nome ?? "", fEvento) &&
+      (!fCategoria || c.plano_contas_id === fCategoria) &&
+      (!fEmpresa || c.empresa_id === fEmpresa) &&
+      (!fGrupo || (c.categoria?.grupo?.nome ?? "") === fGrupo) &&
+      (!fFornecedor || c.fornecedor === fFornecedor) &&
+      (!fStatus || c.status_pagamento_id === fStatus) &&
+      (!fVencDe || (c.data_vencimento ?? "") >= fVencDe) &&
+      (!fVencAte || (c.data_vencimento ?? "") <= fVencAte),
+  );
 
   return (
     <div className="space-y-6">
@@ -228,6 +262,39 @@ export function ContasPagarClient() {
           </Button>
         </div>
 
+        {contas.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-5 py-3">
+            <input value={fCliente} onChange={(e) => setFCliente(e.target.value)} placeholder="Cliente" className={filterCls} />
+            <input value={fEvento} onChange={(e) => setFEvento(e.target.value)} placeholder="Evento" className={filterCls} />
+            <select aria-label="Filtrar categoria" value={fCategoria} onChange={(e) => setFCategoria(e.target.value)} className={filterCls}>
+              <option value="">Todas categorias</option>
+              {categorias.map((c) => (<option key={c.id} value={c.id}>{c.nome}</option>))}
+            </select>
+            <select aria-label="Filtrar grupo" value={fGrupo} onChange={(e) => setFGrupo(e.target.value)} className={filterCls}>
+              <option value="">Todos grupos</option>
+              {gruposContas.map((g) => (<option key={g} value={g}>{g}</option>))}
+            </select>
+            <select aria-label="Filtrar empresa" value={fEmpresa} onChange={(e) => setFEmpresa(e.target.value)} className={filterCls}>
+              <option value="">Todas empresas</option>
+              {empresas.map((emp) => (<option key={emp.id} value={emp.id}>{emp.nome}</option>))}
+            </select>
+            <select aria-label="Filtrar fornecedor" value={fFornecedor} onChange={(e) => setFFornecedor(e.target.value)} className={filterCls}>
+              <option value="">Todos fornecedores</option>
+              {fornecedores.map((f) => (<option key={f} value={f}>{f}</option>))}
+            </select>
+            <select aria-label="Filtrar status" value={fStatus} onChange={(e) => setFStatus(e.target.value)} className={filterCls}>
+              <option value="">Todos status</option>
+              {statuses.map((s) => (<option key={s.id} value={s.id}>{s.nome}</option>))}
+            </select>
+            <label className="flex items-center gap-1 text-sm text-slate-600">
+              Vencimento
+              <input type="date" aria-label="Vencimento de" value={fVencDe} onChange={(e) => setFVencDe(e.target.value)} className={filterCls} />
+              <span>até</span>
+              <input type="date" aria-label="Vencimento até" value={fVencAte} onChange={(e) => setFVencAte(e.target.value)} className={filterCls} />
+            </label>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 px-5 py-14 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -244,9 +311,13 @@ export function ContasPagarClient() {
               Adicionar a primeira
             </button>
           </div>
+        ) : contasFiltradas.length === 0 ? (
+          <div className="px-5 py-14 text-center text-sm text-slate-500">
+            Nenhuma conta para os filtros.
+          </div>
         ) : (
           <DataTable<ContaPagar>
-            rows={contas}
+            rows={contasFiltradas}
             getRowKey={(c) => c.id}
             columns={columns}
             actions={(c) => (

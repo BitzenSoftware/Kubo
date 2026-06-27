@@ -51,6 +51,16 @@ export function FreelancerServicoClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filtros
+  const [fCliente, setFCliente] = useState("");
+  const [fFreelancer, setFFreelancer] = useState("");
+  const [fEvento, setFEvento] = useState("");
+  const [fCategoria, setFCategoria] = useState("");
+  const [fPlano, setFPlano] = useState("");
+  const [fStatus, setFStatus] = useState("");
+  const [fDataDe, setFDataDe] = useState("");
+  const [fDataAte, setFDataAte] = useState("");
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<FreelancerServico | null>(null);
   const [form, setForm] = useState({ ...emptyForm });
@@ -203,6 +213,25 @@ export function FreelancerServicoClient() {
   const inputCls =
     "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
   const roCls = "w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500";
+  const filterCls =
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+
+  const gruposFreela = Array.from(
+    new Set(categorias.map((c) => c.grupo_nome).filter(Boolean)),
+  ) as string[];
+  const inc = (v: string | null, t: string) =>
+    (v ?? "").toLowerCase().includes(t.trim().toLowerCase());
+  const registrosFiltrados = registros.filter(
+    (s) =>
+      inc(s.cliente?.nome ?? "", fCliente) &&
+      inc(s.freelancer?.nome ?? "", fFreelancer) &&
+      inc(s.evento?.nome ?? "", fEvento) &&
+      (!fCategoria || s.categoria_id === fCategoria) &&
+      (!fPlano || (s.categoria?.grupo?.nome ?? "") === fPlano) &&
+      (!fStatus || s.status_pagamento_id === fStatus) &&
+      (!fDataDe || (s.data_evento_inicio ?? "") >= fDataDe) &&
+      (!fDataAte || (s.data_evento_inicio ?? "") <= fDataAte),
+  );
 
   return (
     <div className="space-y-6">
@@ -223,6 +252,32 @@ export function FreelancerServicoClient() {
           </Button>
         </div>
 
+        {registros.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-5 py-3">
+            <input value={fCliente} onChange={(e) => setFCliente(e.target.value)} placeholder="Cliente" className={filterCls} />
+            <input value={fFreelancer} onChange={(e) => setFFreelancer(e.target.value)} placeholder="Freelancer" className={filterCls} />
+            <input value={fEvento} onChange={(e) => setFEvento(e.target.value)} placeholder="Evento" className={filterCls} />
+            <select aria-label="Filtrar categoria" value={fCategoria} onChange={(e) => setFCategoria(e.target.value)} className={filterCls}>
+              <option value="">Todas categorias</option>
+              {categorias.map((c) => (<option key={c.id} value={c.id}>{c.nome}</option>))}
+            </select>
+            <select aria-label="Filtrar plano de contas" value={fPlano} onChange={(e) => setFPlano(e.target.value)} className={filterCls}>
+              <option value="">Todos planos de contas</option>
+              {gruposFreela.map((g) => (<option key={g} value={g}>{g}</option>))}
+            </select>
+            <select aria-label="Filtrar status pagamento" value={fStatus} onChange={(e) => setFStatus(e.target.value)} className={filterCls}>
+              <option value="">Todos status</option>
+              {statusRec.map((s) => (<option key={s.id} value={s.id}>{s.nome}</option>))}
+            </select>
+            <label className="flex items-center gap-1 text-sm text-slate-600">
+              Data evento
+              <input type="date" aria-label="Data evento de" value={fDataDe} onChange={(e) => setFDataDe(e.target.value)} className={filterCls} />
+              <span>até</span>
+              <input type="date" aria-label="Data evento até" value={fDataAte} onChange={(e) => setFDataAte(e.target.value)} className={filterCls} />
+            </label>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 px-5 py-14 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -235,9 +290,13 @@ export function FreelancerServicoClient() {
               Adicionar o primeiro
             </button>
           </div>
+        ) : registrosFiltrados.length === 0 ? (
+          <div className="px-5 py-14 text-center text-sm text-slate-500">
+            Nenhum serviço para os filtros.
+          </div>
         ) : (
           <DataTable<FreelancerServico>
-            rows={registros}
+            rows={registrosFiltrados}
             getRowKey={(s) => s.id}
             columns={columns}
             actions={(s) => (

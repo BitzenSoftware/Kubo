@@ -12,7 +12,7 @@ export type ContaPagar = {
   status_pagamento_id: string | null;
   data_pagamento: string | null;
   ativo: boolean;
-  evento: { id_evento: string; nome: string } | null;
+  evento: { id_evento: string; nome: string; cliente: { nome: string } | null } | null;
   categoria: { nome: string; grupo: { nome: string } | null } | null;
   empresa: { nome: string } | null;
   status: { nome: string } | null;
@@ -28,7 +28,7 @@ export async function listContas(): Promise<ContaPagar[]> {
   const { data, error } = await getSupabase()
     .from("contas_pagar")
     .select(
-      "id, data_vencimento, evento_id, plano_contas_id, empresa_id, fornecedor, descricao, valor_total, status_pagamento_id, data_pagamento, ativo, evento:evento_id(id_evento, nome), categoria:plano_contas_id(nome, grupo:grupo_id(nome)), empresa:empresa_id(nome), status:status_pagamento_id(nome)",
+      "id, data_vencimento, evento_id, plano_contas_id, empresa_id, fornecedor, descricao, valor_total, status_pagamento_id, data_pagamento, ativo, evento:evento_id(id_evento, nome, cliente:cliente_id(nome)), categoria:plano_contas_id(nome, grupo:grupo_id(nome)), empresa:empresa_id(nome), status:status_pagamento_id(nome)",
     )
     .order("data_vencimento", { ascending: true });
   if (error) throw error;

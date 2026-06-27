@@ -60,6 +60,18 @@ export function FaturamentoClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filtros
+  const [fCliente, setFCliente] = useState("");
+  const [fEvento, setFEvento] = useState("");
+  const [fEmpresa, setFEmpresa] = useState("");
+  const [fStatus, setFStatus] = useState("");
+  const [fTipo, setFTipo] = useState("");
+  const [fTaxa, setFTaxa] = useState("");
+  const [fEmisDe, setFEmisDe] = useState("");
+  const [fEmisAte, setFEmisAte] = useState("");
+  const [fRecDe, setFRecDe] = useState("");
+  const [fRecAte, setFRecAte] = useState("");
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Faturamento | null>(null);
   const [form, setForm] = useState({ ...emptyForm });
@@ -273,6 +285,24 @@ export function FaturamentoClient() {
   const inputCls =
     "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
   const roCls = "w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500";
+  const filterCls =
+    "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
+
+  const inc = (v: string | null, t: string) =>
+    (v ?? "").toLowerCase().includes(t.trim().toLowerCase());
+  const registrosFiltrados = registros.filter(
+    (f) =>
+      inc(f.cliente?.nome ?? "", fCliente) &&
+      inc(f.evento?.nome ?? "", fEvento) &&
+      (!fEmpresa || f.empresa_id === fEmpresa) &&
+      (!fStatus || f.status_recebimento_id === fStatus) &&
+      (!fTipo || f.tipo_id === fTipo) &&
+      (!fTaxa || f.taxa_id === fTaxa) &&
+      (!fEmisDe || (f.data_emissao ?? "") >= fEmisDe) &&
+      (!fEmisAte || (f.data_emissao ?? "") <= fEmisAte) &&
+      (!fRecDe || (f.data_recebimento ?? "") >= fRecDe) &&
+      (!fRecAte || (f.data_recebimento ?? "") <= fRecAte),
+  );
 
   return (
     <div className="space-y-6">
@@ -293,6 +323,41 @@ export function FaturamentoClient() {
           </Button>
         </div>
 
+        {registros.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-5 py-3">
+            <input value={fCliente} onChange={(e) => setFCliente(e.target.value)} placeholder="Cliente" className={filterCls} />
+            <input value={fEvento} onChange={(e) => setFEvento(e.target.value)} placeholder="Evento" className={filterCls} />
+            <select aria-label="Filtrar empresa" value={fEmpresa} onChange={(e) => setFEmpresa(e.target.value)} className={filterCls}>
+              <option value="">Todas empresas</option>
+              {empresas.map((emp) => (<option key={emp.id} value={emp.id}>{emp.nome}</option>))}
+            </select>
+            <select aria-label="Filtrar status recebimento" value={fStatus} onChange={(e) => setFStatus(e.target.value)} className={filterCls}>
+              <option value="">Todos status</option>
+              {statusRec.map((s) => (<option key={s.id} value={s.id}>{s.nome}</option>))}
+            </select>
+            <select aria-label="Filtrar tipo" value={fTipo} onChange={(e) => setFTipo(e.target.value)} className={filterCls}>
+              <option value="">Todos tipos</option>
+              {tipos.map((t) => (<option key={t.id} value={t.id}>{t.nome}</option>))}
+            </select>
+            <select aria-label="Filtrar taxa" value={fTaxa} onChange={(e) => setFTaxa(e.target.value)} className={filterCls}>
+              <option value="">Todas taxas</option>
+              {taxas.map((t) => (<option key={t.id} value={t.id}>{t.nome}</option>))}
+            </select>
+            <label className="flex items-center gap-1 text-sm text-slate-600">
+              Emissão
+              <input type="date" aria-label="Emissão de" value={fEmisDe} onChange={(e) => setFEmisDe(e.target.value)} className={filterCls} />
+              <span>até</span>
+              <input type="date" aria-label="Emissão até" value={fEmisAte} onChange={(e) => setFEmisAte(e.target.value)} className={filterCls} />
+            </label>
+            <label className="flex items-center gap-1 text-sm text-slate-600">
+              Recebimento
+              <input type="date" aria-label="Recebimento de" value={fRecDe} onChange={(e) => setFRecDe(e.target.value)} className={filterCls} />
+              <span>até</span>
+              <input type="date" aria-label="Recebimento até" value={fRecAte} onChange={(e) => setFRecAte(e.target.value)} className={filterCls} />
+            </label>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 px-5 py-14 text-sm text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -305,9 +370,13 @@ export function FaturamentoClient() {
               Adicionar o primeiro
             </button>
           </div>
+        ) : registrosFiltrados.length === 0 ? (
+          <div className="px-5 py-14 text-center text-sm text-slate-500">
+            Nenhum faturamento para os filtros.
+          </div>
         ) : (
           <DataTable<Faturamento>
-            rows={registros}
+            rows={registrosFiltrados}
             getRowKey={(f) => f.id}
             columns={columns}
             actions={(f) => (

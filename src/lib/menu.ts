@@ -5,6 +5,7 @@ import {
   CalendarDays,
   LayoutDashboard,
   Package,
+  Receipt,
   Settings,
   Users,
   Wallet,
@@ -55,6 +56,7 @@ export const menu: MenuGroup[] = [
     label: "Financeiro",
     items: [
       { label: "Contas a Pagar", href: "/contas-pagar", icon: Wallet },
+      { label: "Faturamento", href: "/faturamento", icon: Receipt },
     ],
   },
   {

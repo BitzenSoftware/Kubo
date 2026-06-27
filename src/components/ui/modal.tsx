@@ -8,9 +8,16 @@ type Props = {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  size?: "md" | "lg" | "xl";
 };
 
-export function Modal({ open, title, onClose, children }: Props) {
+const sizes = {
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-2xl",
+};
+
+export function Modal({ open, title, onClose, children, size = "md" }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -28,7 +35,7 @@ export function Modal({ open, title, onClose, children }: Props) {
       onMouseDown={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white shadow-xl"
+        className={`w-full ${sizes[size]} rounded-xl bg-white shadow-xl`}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">

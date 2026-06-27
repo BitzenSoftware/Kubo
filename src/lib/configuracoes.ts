@@ -99,13 +99,6 @@ export const configTabs: ConfigTab[] = [
     fields: [{ key: "nome", label: "Nome", type: "text" }],
   },
   {
-    id: "status-comercial",
-    table: "status_comercial",
-    label: "Status Comercial",
-    singular: "Status Comercial",
-    fields: [{ key: "nome", label: "Nome", type: "text" }],
-  },
-  {
     id: "origem-plano-contas",
     table: "origem_plano_contas",
     label: "Origem Plano de Contas",

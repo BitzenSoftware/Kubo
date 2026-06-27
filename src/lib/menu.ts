@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Boxes,
+  Briefcase,
   CalendarDays,
   LayoutDashboard,
   Package,
@@ -45,6 +46,10 @@ export const menu: MenuGroup[] = [
       { label: "Eventos", href: "/eventos", icon: CalendarDays },
       { label: "Estoque", href: "/estoque", icon: Boxes },
     ],
+  },
+  {
+    label: "Comercial",
+    items: [{ label: "Comercial", href: "/comercial", icon: Briefcase }],
   },
   {
     label: "Financeiro",

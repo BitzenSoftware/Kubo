@@ -6,6 +6,7 @@ import {
   Package,
   Settings,
   Users,
+  Wallet,
 } from "lucide-react";
 
 export type MenuItem = {
@@ -43,6 +44,12 @@ export const menu: MenuGroup[] = [
     items: [
       { label: "Eventos", href: "/eventos", icon: CalendarDays },
       { label: "Estoque", href: "/estoque", icon: Boxes },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { label: "Contas a Pagar", href: "/contas-pagar", icon: Wallet },
     ],
   },
   {

@@ -158,6 +158,13 @@ export function FaturamentoClient() {
       setFormError("Informe o Valor Bruto.");
       return;
     }
+    if (
+      form.evento_id &&
+      registros.some((r) => r.evento_id === form.evento_id && r.id !== editing?.id)
+    ) {
+      setFormError("Já existe um faturamento para este evento.");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {

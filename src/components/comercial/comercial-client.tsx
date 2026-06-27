@@ -144,6 +144,13 @@ export function ComercialClient() {
       setFormError("Informe a Data do Pedido.");
       return;
     }
+    if (
+      form.evento_id &&
+      registros.some((r) => r.evento_id === form.evento_id && r.id !== editing?.id)
+    ) {
+      setFormError("Já existe um pedido comercial para este evento.");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {

@@ -49,8 +49,22 @@ export async function criarFaturamentoDeComercial(c: {
   valor_orcado: number | null;
   empresa_id: string | null;
 }): Promise<void> {
+  const sb = getSupabase();
+  // Sincronização: um evento só pode ter um faturamento
+  if (c.evento_id) {
+    const { data: existente, error: eEx } = await sb
+      .from("faturamento")
+      .select("id")
+      .eq("evento_id", c.evento_id)
+      .limit(1)
+      .maybeSingle();
+    if (eEx) throw eEx;
+    if (existente?.id) {
+      throw new Error("Já existe um faturamento para este evento.");
+    }
+  }
   const statusId = await ensureStatusRecebimento("Pendente");
-  const { error } = await getSupabase().from("faturamento").insert({
+  const { error } = await sb.from("faturamento").insert({
     evento_id: c.evento_id,
     cliente_id: c.cliente_id,
     valor_bruto: c.valor_orcado,

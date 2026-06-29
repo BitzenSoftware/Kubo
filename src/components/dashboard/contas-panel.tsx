@@ -57,6 +57,63 @@ export function ContasPanel() {
 
   const temFiltro = fStatus || fFornecedor || fEmpresa || fCategoria || fGrupo || fEvento || fVcDe || fVcAte;
 
+  // ---- Cartões: período de Vencimento vs mesmo período no mês anterior ----
+  const baseCat = rows.filter(
+    (r) =>
+      (!fStatus || r.status?.nome === fStatus) &&
+      (!fFornecedor || r.fornecedor === fFornecedor) &&
+      (!fEmpresa || r.empresa?.nome === fEmpresa) &&
+      (!fCategoria || r.categoria?.nome === fCategoria) &&
+      (!fGrupo || (r.categoria?.grupo?.nome ?? "") === fGrupo) &&
+      (!fEvento || r.evento?.id_evento === fEvento),
+  );
+  const mesesComDados = uniq(
+    baseCat.map((r) => (r.data_vencimento ? r.data_vencimento.slice(0, 7) : null)),
+  ).sort();
+  const mesAtual = mesesComDados[mesesComDados.length - 1] || new Date().toISOString().slice(0, 7);
+  const mesAnterior = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00`);
+    d.setMonth(d.getMonth() - 1);
+    return d.toISOString().slice(0, 10);
+  };
+  const somaSe = (cond: (r: ContaPagar) => boolean) => {
+    let total = 0;
+    let count = 0;
+    for (const r of baseCat) {
+      if (!cond(r)) continue;
+      total += r.valor_total ?? 0;
+      count += 1;
+    }
+    return { total, count };
+  };
+  let cur: { total: number; count: number };
+  let prev: { total: number; count: number };
+  if (fVcDe && fVcAte) {
+    cur = somaSe((r) => {
+      const x = r.data_vencimento ?? "";
+      return !!x && x >= fVcDe && x <= fVcAte;
+    });
+    const pDe = mesAnterior(fVcDe);
+    const pAte = mesAnterior(fVcAte);
+    prev = somaSe((r) => {
+      const x = r.data_vencimento ?? "";
+      return !!x && x >= pDe && x <= pAte;
+    });
+  } else {
+    const pMes = mesAnterior(`${mesAtual}-01`).slice(0, 7);
+    cur = somaSe((r) => (r.data_vencimento ?? "").startsWith(mesAtual));
+    prev = somaSe((r) => (r.data_vencimento ?? "").startsWith(pMes));
+  }
+  const cresc = (c: number, p: number) => (p !== 0 ? ((c - p) / p) * 100 : c > 0 ? 100 : 0);
+  const fmtCompact = (val: number) =>
+    val.toLocaleString("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 });
+  const ticket = (s: { total: number; count: number }) => (s.count ? s.total / s.count : 0);
+  const cards = [
+    { label: "Total a Pagar", value: fmtCompact(cur.total), g: cresc(cur.total, prev.total) },
+    { label: "Lançamentos", value: String(cur.count), g: cresc(cur.count, prev.count) },
+    { label: "Ticket Médio", value: fmtCompact(ticket(cur)), g: cresc(ticket(cur), ticket(prev)) },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -98,6 +155,18 @@ export function ContasPanel() {
         <div className="ml-auto">
           <Toggle percent={percent} setPercent={setPercent} />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {cards.map((c) => (
+          <div key={c.label} className="rounded-lg border border-slate-200 bg-white p-5">
+            <p className="text-sm text-slate-500">{c.label}</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-900">{c.value}</p>
+            <p className={`mt-1 text-xs font-medium ${c.g >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+              {c.g >= 0 ? "▲" : "▼"} {Math.abs(c.g).toFixed(1)}% vs mês anterior
+            </p>
+          </div>
+        ))}
       </div>
 
       <BarChart title="Valor Total por Status de Pagamento" data={porStatus} orientation="horizontal" percent={percent} />

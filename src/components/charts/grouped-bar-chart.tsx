@@ -10,12 +10,15 @@ export function GroupedBarChart({
   rows,
   percent = false,
   money = true,
+  baseKey,
 }: {
   title: string;
   series: Serie[];
   rows: GroupRow[];
   percent?: boolean;
   money?: boolean;
+  /** Em modo %, calcula cada valor em relação a este série (por linha). Se ausente, usa o total da série. */
+  baseKey?: string;
 }) {
   const allVals = rows.flatMap((r) => series.map((s) => Math.abs(r.values[s.key] ?? 0)));
   const max = Math.max(1, ...allVals);
@@ -23,12 +26,13 @@ export function GroupedBarChart({
   for (const s of series) {
     seriesTotal[s.key] = rows.reduce((a, r) => a + Math.abs(r.values[s.key] ?? 0), 0) || 1;
   }
-  const fmt = (v: number, key: string) =>
-    percent
-      ? `${((Math.abs(v) / seriesTotal[key]) * 100).toFixed(1)}%`
-      : money
-        ? fmtMoeda(v)
-        : String(v);
+  const fmt = (v: number, key: string, row: GroupRow) => {
+    if (percent) {
+      const base = baseKey ? Math.abs(row.values[baseKey] ?? 0) || 1 : seriesTotal[key];
+      return `${((Math.abs(v) / base) * 100).toFixed(1)}%`;
+    }
+    return money ? fmtMoeda(v) : String(v);
+  };
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5">
@@ -63,7 +67,7 @@ export function GroupedBarChart({
                         />
                       </div>
                       <span className="w-24 shrink-0 text-right text-xs font-medium text-slate-700">
-                        {fmt(val, s.key)}
+                        {fmt(val, s.key, row)}
                       </span>
                     </div>
                   );

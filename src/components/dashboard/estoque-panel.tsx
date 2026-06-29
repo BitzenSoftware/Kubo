@@ -77,6 +77,7 @@ export function EstoquePanel() {
         rows={grouped}
         percent={percent}
         money={false}
+        baseKey="atual"
       />
     </div>
   );

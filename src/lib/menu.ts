@@ -8,6 +8,7 @@ import {
   Package,
   Receipt,
   Settings,
+  ShieldCheck,
   Users,
   Wallet,
 } from "lucide-react";
@@ -18,6 +19,8 @@ export type MenuItem = {
   icon: LucideIcon;
   /** Cor do ícone (classe Tailwind) quando o item não está selecionado. */
   color?: string;
+  /** Visível apenas para administradores. */
+  adminOnly?: boolean;
 };
 
 export type MenuGroup = {
@@ -70,6 +73,7 @@ export const menu: MenuGroup[] = [
     label: "Sistema",
     items: [
       { label: "Configurações", href: "/configuracoes", icon: Settings, color: "text-slate-500" },
+      { label: "Utilizadores", href: "/utilizadores", icon: ShieldCheck, color: "text-cyan-500", adminOnly: true },
     ],
   },
 ];

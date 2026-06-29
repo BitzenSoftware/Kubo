@@ -18,6 +18,8 @@ import {
   configTabById,
   type ConfigTab,
 } from "@/lib/configuracoes";
+import { useAuth } from "@/lib/auth";
+import { allowedSubs } from "@/lib/access";
 import {
   deleteRow,
   insertRow,
@@ -58,6 +60,8 @@ function formatCell(
 }
 
 export function ConfigClient() {
+  const { user } = useAuth();
+  const visTabs = allowedSubs(user, "/configuracoes", configTabs);
   const [activeId, setActiveId] = useState<string>(configTabs[0].id);
   const [rows, setRows] = useState<Row[]>([]);
   const [options, setOptions] = useState<Record<string, Option[]>>({});
@@ -77,7 +81,10 @@ export function ConfigClient() {
   const [importing, setImporting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const activeTab = configTabById[activeId];
+  const effId = visTabs.some((t) => t.id === activeId)
+    ? activeId
+    : (visTabs[0]?.id ?? activeId);
+  const activeTab = configTabById[effId];
   const keyField = activeTab.keyField ?? "nome";
   const keyLabel =
     activeTab.fields.find((f) => f.key === keyField)?.label ?? "Nome";
@@ -330,8 +337,8 @@ export function ConfigClient() {
 
       {/* Abas */}
       <div className="flex flex-wrap gap-2">
-        {configTabs.map((tab) => {
-          const active = tab.id === activeId;
+        {visTabs.map((tab) => {
+          const active = tab.id === effId;
           const count = counts[tab.id];
           return (
             <button

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { SimpleCrud, type SimpleCrudConfig } from "@/components/crud/simple-crud";
+import { useAuth } from "@/lib/auth";
+import { allowedSubs } from "@/lib/access";
 import { EventosClient } from "./eventos-client";
 
 const statusConfig: SimpleCrudConfig = {
@@ -31,13 +33,16 @@ const tabs = [
 type TabId = (typeof tabs)[number]["id"];
 
 export function EventosTabs() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<TabId>("eventos");
+  const tabsVis = allowedSubs(user, "/eventos", tabs);
+  const eff = tabsVis.some((t) => t.id === tab) ? tab : tabsVis[0]?.id;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => {
-          const active = t.id === tab;
+        {tabsVis.map((t) => {
+          const active = t.id === eff;
           return (
             <button
               key={t.id}
@@ -55,7 +60,7 @@ export function EventosTabs() {
         })}
       </div>
 
-      {tab === "eventos" ? (
+      {eff === "eventos" ? (
         <EventosClient />
       ) : (
         <SimpleCrud config={statusConfig} />

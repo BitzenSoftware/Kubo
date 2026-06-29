@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { SimpleCrud, type SimpleCrudConfig } from "@/components/crud/simple-crud";
+import { useAuth } from "@/lib/auth";
+import { allowedSubs } from "@/lib/access";
 import { ComercialClient } from "./comercial-client";
 
 const statusConfig: SimpleCrudConfig = {
@@ -51,13 +53,16 @@ const tabs = [
 type TabId = (typeof tabs)[number]["id"];
 
 export function ComercialTabs() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<TabId>("pedidos");
+  const tabsVis = allowedSubs(user, "/comercial", tabs);
+  const eff = tabsVis.some((t) => t.id === tab) ? tab : tabsVis[0]?.id;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => {
-          const active = t.id === tab;
+        {tabsVis.map((t) => {
+          const active = t.id === eff;
           return (
             <button
               key={t.id}
@@ -75,11 +80,11 @@ export function ComercialTabs() {
         })}
       </div>
 
-      {tab === "pedidos" && <ComercialClient />}
-      {tab === "status" && <SimpleCrud config={statusConfig} />}
-      {tab === "vendedor" && <SimpleCrud config={vendedorConfig} />}
-      {tab === "versao" && <SimpleCrud config={versaoConfig} />}
-      {tab === "agencia" && <SimpleCrud config={agenciaConfig} />}
+      {eff === "pedidos" && <ComercialClient />}
+      {eff === "status" && <SimpleCrud config={statusConfig} />}
+      {eff === "vendedor" && <SimpleCrud config={vendedorConfig} />}
+      {eff === "versao" && <SimpleCrud config={versaoConfig} />}
+      {eff === "agencia" && <SimpleCrud config={agenciaConfig} />}
     </div>
   );
 }

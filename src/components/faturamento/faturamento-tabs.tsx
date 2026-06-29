@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { SimpleCrud, type SimpleCrudConfig } from "@/components/crud/simple-crud";
+import { useAuth } from "@/lib/auth";
+import { allowedSubs } from "@/lib/access";
 import { FaturamentoClient } from "./faturamento-client";
 
 const statusConfig: SimpleCrudConfig = {
@@ -51,13 +53,16 @@ const tabs = [
 type TabId = (typeof tabs)[number]["id"];
 
 export function FaturamentoTabs() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<TabId>("faturamento");
+  const tabsVis = allowedSubs(user, "/faturamento", tabs);
+  const eff = tabsVis.some((t) => t.id === tab) ? tab : tabsVis[0]?.id;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => {
-          const active = t.id === tab;
+        {tabsVis.map((t) => {
+          const active = t.id === eff;
           return (
             <button
               key={t.id}
@@ -75,10 +80,10 @@ export function FaturamentoTabs() {
         })}
       </div>
 
-      {tab === "faturamento" && <FaturamentoClient />}
-      {tab === "status" && <SimpleCrud config={statusConfig} />}
-      {tab === "taxa" && <SimpleCrud config={taxaConfig} />}
-      {tab === "tipo" && <SimpleCrud config={tipoConfig} />}
+      {eff === "faturamento" && <FaturamentoClient />}
+      {eff === "status" && <SimpleCrud config={statusConfig} />}
+      {eff === "taxa" && <SimpleCrud config={taxaConfig} />}
+      {eff === "tipo" && <SimpleCrud config={tipoConfig} />}
     </div>
   );
 }

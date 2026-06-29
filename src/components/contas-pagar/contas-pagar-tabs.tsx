@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { SimpleCrud, type SimpleCrudConfig } from "@/components/crud/simple-crud";
+import { useAuth } from "@/lib/auth";
+import { allowedSubs } from "@/lib/access";
 import { ContasPagarClient } from "./contas-pagar-client";
 
 const statusConfig: SimpleCrudConfig = {
@@ -21,13 +23,16 @@ const tabs = [
 type TabId = (typeof tabs)[number]["id"];
 
 export function ContasPagarTabs() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<TabId>("contas");
+  const tabsVis = allowedSubs(user, "/contas-pagar", tabs);
+  const eff = tabsVis.some((t) => t.id === tab) ? tab : tabsVis[0]?.id;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => {
-          const active = t.id === tab;
+        {tabsVis.map((t) => {
+          const active = t.id === eff;
           return (
             <button
               key={t.id}
@@ -45,11 +50,8 @@ export function ContasPagarTabs() {
         })}
       </div>
 
-      {tab === "contas" ? (
-        <ContasPagarClient />
-      ) : (
-        <SimpleCrud config={statusConfig} />
-      )}
+      {eff === "contas" && <ContasPagarClient />}
+      {eff === "status" && <SimpleCrud config={statusConfig} />}
     </div>
   );
 }

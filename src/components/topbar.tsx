@@ -1,8 +1,11 @@
 "use client";
 
-import { Bell, Search, UserCircle2 } from "lucide-react";
+import { Bell, LogOut, Search, UserCircle2 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export function Topbar() {
+  const { user, logout } = useAuth();
+
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6">
       <div className="relative w-full max-w-sm">
@@ -22,12 +25,18 @@ export function Topbar() {
         >
           <Bell className="h-5 w-5" />
         </button>
+        <div className="flex items-center gap-2 text-slate-600">
+          <UserCircle2 className="h-6 w-6" />
+          <span className="text-sm font-medium">{user?.nome ?? "Usuário"}</span>
+        </div>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-md p-1.5 pr-2 text-slate-600 hover:bg-slate-100"
+          onClick={() => logout()}
+          className="rounded-md p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+          aria-label="Sair"
+          title="Sair"
         >
-          <UserCircle2 className="h-6 w-6" />
-          <span className="text-sm font-medium">Usuário</span>
+          <LogOut className="h-5 w-5" />
         </button>
       </div>
     </header>

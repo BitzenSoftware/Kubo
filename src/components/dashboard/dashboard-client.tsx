@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { allowedSubs } from "@/lib/access";
 import { listEventos } from "@/lib/eventos-data";
 import { listEstoque } from "@/lib/estoque-data";
 import { ComercialPanel } from "./comercial-panel";
@@ -133,16 +135,18 @@ const tabs = [
 type TabId = (typeof tabs)[number]["id"];
 
 export function DashboardClient() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<TabId>("eventos");
-  const active = tabs.find((t) => t.id === tab) ?? tabs[0];
+  const visTabs = allowedSubs(user, "/dashboard", tabs);
+  const active = visTabs.find((t) => t.id === tab) ?? visTabs[0] ?? tabs[0];
 
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
 
       <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => {
-          const isActive = t.id === tab;
+        {visTabs.map((t) => {
+          const isActive = t.id === active.id;
           return (
             <button
               key={t.id}

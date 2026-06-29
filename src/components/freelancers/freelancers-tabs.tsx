@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { SimpleCrud, type SimpleCrudConfig } from "@/components/crud/simple-crud";
+import { useAuth } from "@/lib/auth";
+import { allowedSubs } from "@/lib/access";
 import { FreelancerServicoClient } from "./freelancer-servico-client";
 
 const freelancersConfig: SimpleCrudConfig = {
@@ -39,13 +41,16 @@ const tabs = [
 type TabId = (typeof tabs)[number]["id"];
 
 export function FreelancersTabs() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<TabId>("servicos");
+  const tabsVis = allowedSubs(user, "/freelancers", tabs);
+  const eff = tabsVis.some((t) => t.id === tab) ? tab : tabsVis[0]?.id;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => {
-          const active = t.id === tab;
+        {tabsVis.map((t) => {
+          const active = t.id === eff;
           return (
             <button
               key={t.id}
@@ -63,9 +68,9 @@ export function FreelancersTabs() {
         })}
       </div>
 
-      {tab === "servicos" && <FreelancerServicoClient />}
-      {tab === "freelancers" && <SimpleCrud config={freelancersConfig} />}
-      {tab === "categoria" && <SimpleCrud config={categoriaConfig} />}
+      {eff === "servicos" && <FreelancerServicoClient />}
+      {eff === "freelancers" && <SimpleCrud config={freelancersConfig} />}
+      {eff === "categoria" && <SimpleCrud config={categoriaConfig} />}
     </div>
   );
 }

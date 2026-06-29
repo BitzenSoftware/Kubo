@@ -31,9 +31,11 @@ export const filterCls =
 export function Toggle({
   percent,
   setPercent,
+  absLabel = "R$",
 }: {
   percent: boolean;
   setPercent: (b: boolean) => void;
+  absLabel?: string;
 }) {
   return (
     <div className="inline-flex overflow-hidden rounded-md border border-slate-300">
@@ -44,7 +46,7 @@ export function Toggle({
           !percent ? "bg-blue-700 text-white" : "bg-white text-slate-600"
         }`}
       >
-        R$
+        {absLabel}
       </button>
       <button
         type="button"

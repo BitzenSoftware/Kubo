@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { allowedSubs } from "@/lib/access";
 import { listEventos } from "@/lib/eventos-data";
-import { listEstoque } from "@/lib/estoque-data";
+import { EstoquePanel } from "./estoque-panel";
 import { ComercialPanel } from "./comercial-panel";
 import { FreelancersPanel } from "./freelancers-panel";
 import { ContasPanel } from "./contas-panel";
@@ -88,34 +88,6 @@ function EventosPanel() {
           cards={[
             { label: "Total de eventos", value: String(d.total) },
             { label: "Ativos", value: String(d.ativos) },
-          ]}
-        />
-      )}
-    />
-  );
-}
-
-function EstoquePanel() {
-  return (
-    <Panel
-      loader={async () => {
-        const linhas = await listEstoque();
-        const sum = (f: (x: (typeof linhas)[number]) => number) =>
-          linhas.reduce((a, x) => a + f(x), 0);
-        return {
-          itens: linhas.length,
-          atual: sum((x) => x.qtd_atual),
-          alocada: sum((x) => x.qtd_alocada),
-          disponivel: sum((x) => x.qtd_disponivel),
-        };
-      }}
-      render={(d) => (
-        <StatCards
-          cards={[
-            { label: "Produtos", value: String(d.itens) },
-            { label: "Qtd atual (total)", value: String(d.atual) },
-            { label: "Qtd alocada", value: String(d.alocada) },
-            { label: "Qtd disponível", value: String(d.disponivel), tone: d.disponivel <= 0 ? "bad" : "good" },
           ]}
         />
       )}

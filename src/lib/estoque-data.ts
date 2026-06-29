@@ -4,19 +4,26 @@ export type EstoqueLinha = {
   id: string;
   codigo: string;
   nome: string;
+  categoria: string;
   qtd_atual: number;
   qtd_alocada: number;
   qtd_disponivel: number;
 };
 
-type ProdutoRow = { id: string; codigo: string; nome: string; qtd_atual: number | null };
+type ProdutoRow = {
+  id: string;
+  codigo: string;
+  nome: string;
+  qtd_atual: number | null;
+  categoria: { nome: string | null } | null;
+};
 type EventoRow = { id: string; status: { aloca: boolean } | null };
 type ItemRow = { produto_id: string; quantidade: number | null; tipo: string; evento_id: string };
 
 export async function listEstoque(): Promise<EstoqueLinha[]> {
   const sb = getSupabase();
   const [prodRes, evRes, itensRes] = await Promise.all([
-    sb.from("produtos").select("id, codigo, nome, qtd_atual").order("codigo"),
+    sb.from("produtos").select("id, codigo, nome, qtd_atual, categoria:categoria_id(nome)").order("codigo"),
     sb.from("eventos").select("id, status:status_id(aloca)"),
     sb.from("evento_itens").select("produto_id, quantidade, tipo, evento_id"),
   ]);
@@ -48,6 +55,7 @@ export async function listEstoque(): Promise<EstoqueLinha[]> {
       id: p.id,
       codigo: p.codigo,
       nome: p.nome,
+      categoria: p.categoria?.nome ?? "—",
       qtd_atual: atual,
       qtd_alocada: alocada,
       qtd_disponivel: atual - alocada,

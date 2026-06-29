@@ -102,12 +102,12 @@ export function FaturamentoPanel() {
     const d = new Date(y, m - 2, 1);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   })();
-  const somaMes = (ym: string) => {
+  const somaSe = (cond: (r: (typeof baseCat)[number]) => boolean) => {
     let bruto = 0;
     let custo = 0;
     let liquido = 0;
     for (const r of baseCat) {
-      if (!(r.data_emissao ?? "").startsWith(ym)) continue;
+      if (!cond(r)) continue;
       const k = calcRow(r);
       bruto += k.bruto;
       custo += k.custo;
@@ -115,8 +115,31 @@ export function FaturamentoPanel() {
     }
     return { bruto, custo, liquido };
   };
-  const cur = somaMes(mesAtual);
-  const prev = somaMes(prevMes);
+  const mesAnterior = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00`);
+    d.setMonth(d.getMonth() - 1);
+    return d.toISOString().slice(0, 10);
+  };
+
+  let cur: { bruto: number; custo: number; liquido: number };
+  let prev: { bruto: number; custo: number; liquido: number };
+  if (fEmDe && fEmAte) {
+    // Período selecionado vs o mesmo período no mês anterior
+    cur = somaSe((r) => {
+      const v = r.data_emissao ?? "";
+      return !!v && v >= fEmDe && v <= fEmAte;
+    });
+    const prevDe = mesAnterior(fEmDe);
+    const prevAte = mesAnterior(fEmAte);
+    prev = somaSe((r) => {
+      const v = r.data_emissao ?? "";
+      return !!v && v >= prevDe && v <= prevAte;
+    });
+  } else {
+    // Fallback: mês mais recente com dados vs mês anterior
+    cur = somaSe((r) => (r.data_emissao ?? "").startsWith(mesAtual));
+    prev = somaSe((r) => (r.data_emissao ?? "").startsWith(prevMes));
+  }
   const cresc = (c: number, p: number) =>
     p !== 0 ? ((c - p) / p) * 100 : c > 0 ? 100 : 0;
   const fmtCompact = (v: number) =>

@@ -77,7 +77,7 @@ export function FaturamentoPanel() {
       return {
         label: c,
         value: mar,
-        subMoney: `${fmtMoeda(mar)} (${pct.toFixed(1)}%)`,
+        subMoney: fmtMoeda(mar),
         subPercent: `${pct.toFixed(1)}%`,
       };
     })
@@ -120,7 +120,7 @@ export function FaturamentoPanel() {
         <BarChart title="Valor Bruto por Cliente" data={porBrutoCliente} percent={percent} />
         <BarChart title="Valor Líquido por Evento" data={porLiquidoEvento} percent={percent} />
       </div>
-      <BarChart title="Margem R$ e Margem % por Cliente" data={margemPorCliente} orientation="horizontal" percent={percent} />
+      <BarChart title="Margem" data={margemPorCliente} orientation="horizontal" percent={percent} />
       <BarChart title="Impostos Totais por Empresa" data={porImpostoEmpresa} percent={percent} />
     </div>
   );

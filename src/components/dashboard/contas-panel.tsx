@@ -48,6 +48,7 @@ export function ContasPanel() {
   const porStatus = agrupar(filtered, (r) => r.status?.nome ?? "—", v);
   const porFornecedor = agrupar(filtered, (r) => r.fornecedor ?? "—", v);
   const porCategoria = agrupar(filtered, (r) => r.categoria?.nome ?? "—", v);
+  const porGrupo = agrupar(filtered, (r) => r.categoria?.grupo?.nome ?? "—", v);
 
   const temFiltro = fStatus || fFornecedor || fEmpresa || fCategoria || fGrupo || fEvento || fVcDe || fVcAte;
 
@@ -99,6 +100,7 @@ export function ContasPanel() {
         <BarChart title="Valor Total por Fornecedor" data={porFornecedor} percent={percent} />
         <BarChart title="Valor Total por Categoria" data={porCategoria} orientation="horizontal" percent={percent} />
       </div>
+      <BarChart title="Valor Total por Grupo" data={porGrupo} orientation="horizontal" percent={percent} />
     </div>
   );
 }

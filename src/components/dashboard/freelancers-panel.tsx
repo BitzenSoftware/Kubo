@@ -52,6 +52,8 @@ export function FreelancersPanel() {
   const porFreelancer = agrupar(filtered, (r) => r.freelancer?.nome ?? "—", (r) => r.valor ?? 0);
   const porCliente = agrupar(filtered, (r) => r.cliente?.nome ?? "—", (r) => r.valor ?? 0);
   const porStatus = agrupar(filtered, (r) => r.status?.nome ?? "—", (r) => r.valor ?? 0);
+  const porCategoria = agrupar(filtered, (r) => r.categoria?.nome ?? "—", (r) => r.valor ?? 0);
+  const porPlano = agrupar(filtered, (r) => r.categoria?.grupo?.nome ?? "—", (r) => r.valor ?? 0);
 
   const temFiltro = fFreelancer || fCliente || fCategoria || fPlano || fStatus || fEvDe || fEvAte || fVcDe || fVcAte;
 
@@ -104,7 +106,11 @@ export function FreelancersPanel() {
         <BarChart title="Valor Total por Freelancer" data={porFreelancer} orientation="horizontal" percent={percent} />
         <BarChart title="Valor Total por Cliente" data={porCliente} orientation="horizontal" percent={percent} />
       </div>
-      <BarChart title="Valor por Status de Pagamento" data={porStatus} orientation="horizontal" percent={percent} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <BarChart title="Valor Total por Categoria" data={porCategoria} orientation="horizontal" percent={percent} />
+        <BarChart title="Valor Total por Plano de Contas" data={porPlano} orientation="horizontal" percent={percent} />
+      </div>
+      <BarChart title="Valor por Status de Pagamento" data={porStatus} percent={percent} />
     </div>
   );
 }

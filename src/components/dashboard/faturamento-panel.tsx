@@ -96,10 +96,10 @@ export function FaturamentoPanel() {
     baseCat.map((r) => (r.data_emissao ? r.data_emissao.slice(0, 7) : null)),
   ).sort();
 
-  // Faturamento pendente (sem data de emissão) por empresa
-  const pendentePorEmpresa = agrupar(
+  // Faturamento pendente (sem data de emissão) por cliente
+  const pendentePorCliente = agrupar(
     baseCat.filter((r) => !r.data_emissao),
-    (r) => r.empresa?.nome ?? "—",
+    (r) => r.cliente?.nome ?? "—",
     (r) => calcRow(r).bruto,
   );
   const hojeMes = new Date().toISOString().slice(0, 7);
@@ -215,7 +215,7 @@ export function FaturamentoPanel() {
       <BarChart title="Margem" data={margemPorCliente} orientation="horizontal" percent={percent} />
       <div className="grid gap-4 lg:grid-cols-2">
         <BarChart title="Impostos Totais por Empresa" data={porImpostoEmpresa} percent={percent} />
-        <BarChart title="Faturamento Pendente por Empresa (sem emissão)" data={pendentePorEmpresa} percent={percent} />
+        <BarChart title="Faturamento Pendente por Cliente (sem emissão)" data={pendentePorCliente} percent={percent} />
       </div>
     </div>
   );

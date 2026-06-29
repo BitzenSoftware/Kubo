@@ -90,7 +90,7 @@ export function ComercialPanel() {
 
       <BarChart title="Valor Orçado Mensal" data={porMes} orientation="horizontal" percent={percent} />
       <div className="grid gap-4 lg:grid-cols-2">
-        <BarChart title="Valor Orçado por Cliente" data={porCliente} percent={percent} />
+        <BarChart title="Valor Orçado por Cliente" data={porCliente} orientation="horizontal" percent={percent} />
         <BarChart title="Valor Orçado por Status Comercial" data={porStatus} percent={percent} />
       </div>
     </div>

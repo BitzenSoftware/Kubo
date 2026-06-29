@@ -60,7 +60,7 @@ export function FaturamentoPanel() {
   );
 
   const porBrutoCliente = agrupar(filtered, (r) => r.cliente?.nome ?? "—", (r) => calcRow(r).bruto);
-  const porLiquidoEvento = agrupar(filtered, (r) => r.evento?.nome ?? "—", (r) => calcRow(r).liquido);
+  const porLiquidoCliente = agrupar(filtered, (r) => r.cliente?.nome ?? "—", (r) => calcRow(r).liquido);
   const porImpostoEmpresa = agrupar(filtered, (r) => r.empresa?.nome ?? "—", (r) => calcRow(r).imposto);
 
   const margemPorCliente = uniq(filtered.map((r) => r.cliente?.nome))
@@ -118,7 +118,7 @@ export function FaturamentoPanel() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <BarChart title="Valor Bruto por Cliente" data={porBrutoCliente} percent={percent} />
-        <BarChart title="Valor Líquido por Evento" data={porLiquidoEvento} percent={percent} />
+        <BarChart title="Valor Líquido por Cliente" data={porLiquidoCliente} percent={percent} />
       </div>
       <BarChart title="Margem" data={margemPorCliente} orientation="horizontal" percent={percent} />
       <BarChart title="Impostos Totais por Empresa" data={porImpostoEmpresa} percent={percent} />

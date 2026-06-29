@@ -50,6 +50,7 @@ export function UsuariosClient() {
   const [perms, setPerms] = useState<Set<string>>(new Set());
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [resetOk, setResetOk] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -90,6 +91,7 @@ export function UsuariosClient() {
     setAtivo(true);
     setPerms(new Set());
     setFormError(null);
+    setResetOk(false);
     setModalOpen(true);
   }
 
@@ -102,6 +104,7 @@ export function UsuariosClient() {
     setAtivo(u.ativo);
     setPerms(new Set(u.permissoes ?? []));
     setFormError(null);
+    setResetOk(false);
     setModalOpen(true);
   }
 
@@ -144,6 +147,25 @@ export function UsuariosClient() {
       await load();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Erro ao salvar.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleReset() {
+    if (!editing) return;
+    setFormError(null);
+    setResetOk(false);
+    if (senha.length < 6)
+      return setFormError("Digite uma senha temporária de pelo menos 6 caracteres.");
+    setSaving(true);
+    try {
+      await authFetch(`/api/usuarios/${editing.id}`, "PATCH", { senha });
+      setResetOk(true);
+      setSenha("");
+      await load();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Erro ao resetar a senha.");
     } finally {
       setSaving(false);
     }
@@ -264,9 +286,24 @@ export function UsuariosClient() {
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   {editing ? "Nova senha (opcional)" : "Senha padrão"}
                 </label>
-                <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} className={inputCls} placeholder={editing ? "Deixe em branco para manter" : "Mín. 6 caracteres"} />
+                <input type="password" value={senha} onChange={(e) => { setSenha(e.target.value); setResetOk(false); }} className={inputCls} placeholder={editing ? "Senha temporária" : "Mín. 6 caracteres"} />
                 {!editing && (
                   <p className="mt-1 text-xs text-slate-400">O usuário troca a senha no primeiro acesso.</p>
+                )}
+                {editing && (
+                  <div className="mt-2 flex items-center gap-3">
+                    <Button type="button" variant="outline" onClick={handleReset} disabled={saving}>
+                      Resetar Senha
+                    </Button>
+                    <span className="text-xs text-slate-400">
+                      Define a senha temporária; o usuário troca no próximo acesso.
+                    </span>
+                  </div>
+                )}
+                {resetOk && (
+                  <p className="mt-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                    Senha resetada. O usuário definirá uma nova no próximo acesso.
+                  </p>
                 )}
               </div>
               <label className="flex items-center gap-2 text-sm text-slate-700">

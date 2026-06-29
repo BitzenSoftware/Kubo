@@ -74,7 +74,12 @@ export function FaturamentoPanel() {
         mar += k.margem;
       }
       const pct = liq !== 0 ? (mar / liq) * 100 : 0;
-      return { label: c, value: mar, sub: `${fmtMoeda(mar)} (${pct.toFixed(1)}%)` };
+      return {
+        label: c,
+        value: mar,
+        subMoney: `${fmtMoeda(mar)} (${pct.toFixed(1)}%)`,
+        subPercent: `${pct.toFixed(1)}%`,
+      };
     })
     .sort((a, b) => b.value - a.value);
 

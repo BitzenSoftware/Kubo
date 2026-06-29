@@ -1,4 +1,11 @@
-export type Bar = { label: string; value: number; sub?: string };
+export type Bar = {
+  label: string;
+  value: number;
+  /** Rótulo customizado no modo R$ (sobrepõe o valor formatado). */
+  subMoney?: string;
+  /** Rótulo customizado no modo % (sobrepõe a porcentagem calculada). */
+  subPercent?: string;
+};
 
 const fmtMoeda = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -18,6 +25,8 @@ export function BarChart({
   const max = Math.max(1, ...data.map((d) => Math.abs(d.value)));
   const fmt = (v: number) =>
     percent ? `${((Math.abs(v) / total) * 100).toFixed(1)}%` : fmtMoeda(v);
+  const display = (d: Bar) =>
+    percent ? (d.subPercent ?? fmt(d.value)) : (d.subMoney ?? fmt(d.value));
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5">
@@ -30,10 +39,10 @@ export function BarChart({
             <div
               key={d.label}
               className="flex min-w-[3rem] flex-1 flex-col items-center justify-end gap-1"
-              title={`${d.label}: ${d.sub ?? fmt(d.value)}`}
+              title={`${d.label}: ${display(d)}`}
             >
               <span className="text-[10px] font-medium text-slate-600">
-                {fmt(d.value)}
+                {display(d)}
               </span>
               <div
                 className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-blue-400"
@@ -54,7 +63,7 @@ export function BarChart({
             <div
               key={d.label}
               className="flex items-center gap-2"
-              title={`${d.label}: ${d.sub ?? fmt(d.value)}`}
+              title={`${d.label}: ${display(d)}`}
             >
               <span className="w-36 shrink-0 truncate text-xs text-slate-600">
                 {d.label}
@@ -66,7 +75,7 @@ export function BarChart({
                 />
               </div>
               <span className="w-32 shrink-0 text-right text-xs font-medium text-slate-700">
-                {d.sub ?? fmt(d.value)}
+                {display(d)}
               </span>
             </div>
           ))}

@@ -50,6 +50,7 @@ export function ComercialPanel() {
   }));
   const porCliente = agrupar(filtered, (r) => r.cliente?.nome ?? "—", (r) => r.valor_orcado ?? 0);
   const porStatus = agrupar(filtered, (r) => r.status?.nome ?? "—", (r) => r.valor_orcado ?? 0);
+  const porVendedor = agrupar(filtered, (r) => r.vendedor?.nome ?? "—", (r) => r.valor_orcado ?? 0);
 
   const temFiltro = fStatus || fCliente || fAgencia || fVendedor || fDe || fAte;
 
@@ -93,6 +94,7 @@ export function ComercialPanel() {
         <BarChart title="Valor Orçado por Cliente" data={porCliente} orientation="horizontal" percent={percent} />
         <BarChart title="Valor Orçado por Status Comercial" data={porStatus} percent={percent} />
       </div>
+      <BarChart title="Valor Orçado por Vendedor" data={porVendedor} orientation="horizontal" percent={percent} />
     </div>
   );
 }

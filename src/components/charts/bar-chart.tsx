@@ -34,23 +34,25 @@ export function BarChart({
       {data.length === 0 ? (
         <p className="py-10 text-center text-sm text-slate-400">Sem dados.</p>
       ) : orientation === "vertical" ? (
-        <div className="flex h-60 items-end gap-2 overflow-x-auto pb-1">
+        <div className="flex h-60 gap-2 overflow-x-auto pb-1">
           {data.map((d) => (
             <div
               key={d.label}
-              className="flex min-w-[3rem] flex-1 flex-col items-center justify-end gap-1"
+              className="flex h-full min-w-[3rem] flex-1 flex-col items-center gap-1"
               title={`${d.label}: ${display(d)}`}
             >
               <span className="text-[10px] font-medium text-slate-600">
                 {display(d)}
               </span>
-              <div
-                className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-blue-400"
-                style={{
-                  height: `${(Math.abs(d.value) / max) * 100}%`,
-                  minHeight: d.value ? 4 : 0,
-                }}
-              />
+              <div className="flex w-full flex-1 items-end">
+                <div
+                  className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-blue-400"
+                  style={{
+                    height: `${(Math.abs(d.value) / max) * 100}%`,
+                    minHeight: d.value ? 4 : 0,
+                  }}
+                />
+              </div>
               <span className="w-full truncate text-center text-[10px] text-slate-500">
                 {d.label}
               </span>

@@ -101,8 +101,8 @@ export function FreelancersPanel() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <BarChart title="Valor Total por Freelancer" data={porFreelancer} percent={percent} />
-        <BarChart title="Valor Total por Cliente" data={porCliente} percent={percent} />
+        <BarChart title="Valor Total por Freelancer" data={porFreelancer} orientation="horizontal" percent={percent} />
+        <BarChart title="Valor Total por Cliente" data={porCliente} orientation="horizontal" percent={percent} />
       </div>
       <BarChart title="Valor por Status de Pagamento" data={porStatus} orientation="horizontal" percent={percent} />
     </div>

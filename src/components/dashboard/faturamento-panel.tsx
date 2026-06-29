@@ -95,6 +95,13 @@ export function FaturamentoPanel() {
   const mesesComDados = uniq(
     baseCat.map((r) => (r.data_emissao ? r.data_emissao.slice(0, 7) : null)),
   ).sort();
+
+  // Faturamento pendente (sem data de emissão) por empresa
+  const pendentePorEmpresa = agrupar(
+    baseCat.filter((r) => !r.data_emissao),
+    (r) => r.empresa?.nome ?? "—",
+    (r) => calcRow(r).bruto,
+  );
   const hojeMes = new Date().toISOString().slice(0, 7);
   const mesAtual = mesesComDados[mesesComDados.length - 1] || hojeMes;
   const prevMes = (() => {
@@ -206,7 +213,10 @@ export function FaturamentoPanel() {
         <BarChart title="Valor Líquido por Cliente" data={porLiquidoCliente} percent={percent} />
       </div>
       <BarChart title="Margem" data={margemPorCliente} orientation="horizontal" percent={percent} />
-      <BarChart title="Impostos Totais por Empresa" data={porImpostoEmpresa} percent={percent} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <BarChart title="Impostos Totais por Empresa" data={porImpostoEmpresa} percent={percent} />
+        <BarChart title="Faturamento Pendente por Empresa (sem emissão)" data={pendentePorEmpresa} percent={percent} />
+      </div>
     </div>
   );
 }

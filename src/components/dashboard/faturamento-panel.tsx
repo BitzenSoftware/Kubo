@@ -215,7 +215,7 @@ export function FaturamentoPanel() {
       <BarChart title="Margem" data={margemPorCliente} orientation="horizontal" percent={percent} />
       <div className="grid gap-4 lg:grid-cols-2">
         <BarChart title="Impostos Totais por Empresa" data={porImpostoEmpresa} percent={percent} />
-        <BarChart title="Faturamento Pendente por Cliente (sem emissão)" data={pendentePorCliente} percent={percent} />
+        <BarChart title="Faturamento Pendente por Cliente (sem emissão)" data={pendentePorCliente} orientation="horizontal" percent={percent} />
       </div>
     </div>
   );

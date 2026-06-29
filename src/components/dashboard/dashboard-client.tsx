@@ -4,13 +4,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { listEventos } from "@/lib/eventos-data";
 import { listEstoque } from "@/lib/estoque-data";
-import { listComercial } from "@/lib/comercial-data";
-import { listFreelancerServicos } from "@/lib/freelancers-data";
-import { listRows } from "@/lib/config-data";
-import { listCustoPorEvento, listFaturamento } from "@/lib/faturamento-data";
-
-const fmtMoeda = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+import { ComercialPanel } from "./comercial-panel";
+import { FreelancersPanel } from "./freelancers-panel";
+import { ContasPanel } from "./contas-panel";
+import { FaturamentoPanel } from "./faturamento-panel";
 
 type Card = { label: string; value: string; tone?: "default" | "good" | "bad" };
 
@@ -124,109 +121,6 @@ function EstoquePanel() {
   );
 }
 
-function ComercialPanel() {
-  return (
-    <Panel
-      loader={async () => {
-        const regs = await listComercial();
-        return {
-          pedidos: regs.length,
-          orcado: regs.reduce((a, r) => a + (r.valor_orcado ?? 0), 0),
-        };
-      }}
-      render={(d) => (
-        <StatCards
-          cards={[
-            { label: "Pedidos", value: String(d.pedidos) },
-            { label: "Valor orçado (total)", value: fmtMoeda(d.orcado) },
-          ]}
-        />
-      )}
-    />
-  );
-}
-
-function FreelancersPanel() {
-  return (
-    <Panel
-      loader={async () => {
-        const regs = await listFreelancerServicos();
-        return {
-          servicos: regs.length,
-          valor: regs.reduce((a, r) => a + (r.valor ?? 0), 0),
-        };
-      }}
-      render={(d) => (
-        <StatCards
-          cards={[
-            { label: "Serviços", value: String(d.servicos) },
-            { label: "Valor (total)", value: fmtMoeda(d.valor) },
-          ]}
-        />
-      )}
-    />
-  );
-}
-
-function ContasPanel() {
-  return (
-    <Panel
-      loader={async () => {
-        const rows = (await listRows("contas_pagar")) as unknown as {
-          valor_total: number | null;
-        }[];
-        return {
-          lancamentos: rows.length,
-          total: rows.reduce((a, r) => a + (r.valor_total ?? 0), 0),
-        };
-      }}
-      render={(d) => (
-        <StatCards
-          cards={[
-            { label: "Lançamentos", value: String(d.lancamentos) },
-            { label: "Total a pagar", value: fmtMoeda(d.total) },
-          ]}
-        />
-      )}
-    />
-  );
-}
-
-function FaturamentoPanel() {
-  return (
-    <Panel
-      loader={async () => {
-        const [regs, custoMap] = await Promise.all([
-          listFaturamento(),
-          listCustoPorEvento(),
-        ]);
-        let bruto = 0;
-        let liquido = 0;
-        let custo = 0;
-        for (const f of regs) {
-          const vb = f.valor_bruto ?? 0;
-          const pct = f.taxa?.percentual ?? 0;
-          const liq = vb - vb * (pct / 100);
-          bruto += vb;
-          liquido += liq;
-          custo += custoMap[f.evento_id ?? ""] ?? 0;
-        }
-        return { lancamentos: regs.length, bruto, liquido, custo, margem: liquido - custo };
-      }}
-      render={(d) => (
-        <StatCards
-          cards={[
-            { label: "Lançamentos", value: String(d.lancamentos) },
-            { label: "Valor bruto", value: fmtMoeda(d.bruto) },
-            { label: "Valor líquido", value: fmtMoeda(d.liquido) },
-            { label: "Margem R$", value: fmtMoeda(d.margem), tone: d.margem < 0 ? "bad" : "good" },
-          ]}
-        />
-      )}
-    />
-  );
-}
-
 const tabs = [
   { id: "eventos", label: "Eventos", panel: <EventosPanel /> },
   { id: "estoque", label: "Estoque", panel: <EstoquePanel /> },
@@ -266,7 +160,6 @@ export function DashboardClient() {
         })}
       </div>
 
-      {/* Remonta o painel ao trocar de aba (key) para recarregar os dados */}
       <div key={active.id}>{active.panel}</div>
     </div>
   );

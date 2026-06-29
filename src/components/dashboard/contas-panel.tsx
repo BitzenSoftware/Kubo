@@ -97,7 +97,7 @@ export function ContasPanel() {
       <BarChart title="Valor Total por Status de Pagamento" data={porStatus} orientation="horizontal" percent={percent} />
       <div className="grid gap-4 lg:grid-cols-2">
         <BarChart title="Valor Total por Fornecedor" data={porFornecedor} percent={percent} />
-        <BarChart title="Valor Total por Categoria" data={porCategoria} percent={percent} />
+        <BarChart title="Valor Total por Categoria" data={porCategoria} orientation="horizontal" percent={percent} />
       </div>
     </div>
   );

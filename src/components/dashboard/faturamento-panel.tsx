@@ -23,7 +23,6 @@ export function FaturamentoPanel() {
   const [fStatus, setFStatus] = useState("");
   const [fEmDe, setFEmDe] = useState("");
   const [fEmAte, setFEmAte] = useState("");
-  const [mes, setMes] = useState("");
 
   useEffect(() => {
     let on = true;
@@ -97,7 +96,7 @@ export function FaturamentoPanel() {
     baseCat.map((r) => (r.data_emissao ? r.data_emissao.slice(0, 7) : null)),
   ).sort();
   const hojeMes = new Date().toISOString().slice(0, 7);
-  const mesAtual = mes || mesesComDados[mesesComDados.length - 1] || hojeMes;
+  const mesAtual = mesesComDados[mesesComDados.length - 1] || hojeMes;
   const prevMes = (() => {
     const [y, m] = mesAtual.split("-").map(Number);
     const d = new Date(y, m - 2, 1);
@@ -164,18 +163,8 @@ export function FaturamentoPanel() {
         </div>
       </div>
 
-      {/* Cartões: mês selecionado vs mês anterior */}
+      {/* Cartões: mês mais recente com dados vs mês anterior */}
       <div className="space-y-3">
-        <label className="flex items-center gap-2 text-sm text-slate-600">
-          Mês
-          <input
-            type="month"
-            aria-label="Mês"
-            value={mesAtual}
-            onChange={(e) => setMes(e.target.value)}
-            className={filterCls}
-          />
-        </label>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {cards.map((c) => (
             <div key={c.label} className="rounded-lg border border-slate-200 bg-white p-5">

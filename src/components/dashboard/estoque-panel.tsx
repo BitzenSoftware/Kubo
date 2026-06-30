@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GroupedBarChart, type GroupRow } from "@/components/charts/grouped-bar-chart";
+import { EstoqueStackedChart, type EstoqueGroup } from "@/components/charts/estoque-stacked-chart";
 import { listEstoque, type EstoqueLinha } from "@/lib/estoque-data";
 import { ErrBox, LoadBox, Toggle } from "./shared";
 
@@ -13,12 +13,6 @@ function StatCard({ label, value, tone }: { label: string; value: string; tone?:
     </div>
   );
 }
-
-const series = [
-  { key: "atual", label: "Atual", color: "bg-blue-600" },
-  { key: "alocada", label: "Alocada", color: "bg-amber-500" },
-  { key: "disponivel", label: "Disponível", color: "bg-emerald-500" },
-];
 
 export function EstoquePanel() {
   const [rows, setRows] = useState<EstoqueLinha[] | null>(null);
@@ -53,10 +47,12 @@ export function EstoquePanel() {
     cur.disponivel += r.qtd_disponivel;
     mapa.set(k, cur);
   }
-  const grouped: GroupRow[] = Array.from(mapa, ([label, v]) => ({
+  const grouped: EstoqueGroup[] = Array.from(mapa, ([label, v]) => ({
     label,
-    values: { atual: v.atual, alocada: v.alocada, disponivel: v.disponivel },
-  })).sort((a, b) => b.values.atual - a.values.atual);
+    atual: v.atual,
+    alocada: v.alocada,
+    disponivel: v.disponivel,
+  })).sort((a, b) => b.atual - a.atual);
 
   return (
     <div className="space-y-4">
@@ -71,13 +67,10 @@ export function EstoquePanel() {
         <Toggle percent={percent} setPercent={setPercent} absLabel="Qtd" />
       </div>
 
-      <GroupedBarChart
+      <EstoqueStackedChart
         title="Estoque por Categoria"
-        series={series}
         rows={grouped}
         percent={percent}
-        money={false}
-        baseKey="atual"
       />
     </div>
   );

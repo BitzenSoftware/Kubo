@@ -35,7 +35,7 @@ export function EstoqueStackedChart({
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
         <div className="flex flex-wrap gap-3">
-          <Legend color="bg-blue-600" label="Atual" />
+          <Legend color="bg-blue-300" label="Atual" />
           <Legend color="bg-amber-500" label="Alocada" />
           <Legend color="bg-emerald-500" label="Disponível" />
         </div>
@@ -58,7 +58,7 @@ export function EstoqueStackedChart({
                 {/* Trilho cinza ocupa a largura toda; a barra azul = Atual */}
                 <div className="h-5 flex-1 rounded bg-slate-100">
                   <div
-                    className="flex h-5 items-center rounded bg-blue-600 px-0.5"
+                    className="flex h-5 items-center rounded bg-blue-300 px-0.5"
                     style={{ width: `${atualW}%` }}
                     title={`Atual: ${r.atual}`}
                   >
